@@ -139,8 +139,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-EMAIL_USER = "abhaykoli214@gmail.com"
-EMAIL_PASS = "qlan xrpx mzga jpls"
+# EMAIL_USER = "abhaykoli214@gmail.com"
+# EMAIL_PASS = "qlan xrpx mzga jpls"
+EMAIL_USER = "wcare823@gmail.com"
+EMAIL_PASS = "olco iphu vjwj jlov"
 
 def send_email(to_email: str, subject: str, body: str, is_html: bool = False) -> bool:
     """

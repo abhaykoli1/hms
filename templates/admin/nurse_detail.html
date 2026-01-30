@@ -41,6 +41,12 @@ block content %}
 
     <!-- 🔥 NAVIGATION BUTTON -->
     <div>
+      {% if nurse.digital_signature %}
+      <img
+        src="https://wecarehhcs.in{{ nurse.digital_signature }}"
+        class="border h-28 w-60 rounded-lg"
+      />
+      {% endif %}
       <!-- <a
         href="/admin/staff/{{ user.id }}/attendance-salary?month={{ month }}"
         class="btn btn-outline-primary btn-sm"
@@ -99,6 +105,83 @@ block content %}
       {% if consent %}
       <small>Version {{ consent.version }}</small>
       {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ================= DOCUMENTS ================= -->
+<div class="bg-card mb-3 border border-gray-50/20 rounded-2xl shadow-soft4">
+  <h5 class="p-3">Documents</h5>
+
+  <div class="ro flex flexcol gap-3 px-3 pb-3">
+    <div class="col-md6">
+      <!-- <strong>Qualification Documents</strong> -->
+      <ul>
+        {% for doc in nurse.qualification_docs %}
+        <li>
+          <a
+            href="https://wecarehhcs.in{{ doc }}"
+            target="_blank"
+            class="border font-semibold border-gray-50 px-3 py-2 mt-2 rounded-lg bg-primary text-white"
+            >Qualification Documents</a
+          >
+        </li>
+        {% else %}
+        <li class="text-muted">No documents</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="col-md6">
+      <!-- <strong>Experience Documents</strong> -->
+      <ul>
+        {% for doc in nurse.experience_docs %}
+        <li>
+          <a
+            href="https://wecarehhcs.in{{ doc }}"
+            target="_blank"
+            class="border font-semibold border-gray-50 px-3 py-2 mt-2 rounded-lg bg-green-600 text-white"
+            >Experience Documents</a
+          >
+        </li>
+        {% else %}
+        <li class="text-muted">No documents</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <!-- <div class="col-md6">
+      
+      <ul>
+        {% for doc in nurse.qualification_docs %}
+        <li>
+          <a
+            href="https://wecarehhcs.in{{ doc }}"
+            target="_blank"
+            class="border font-semibold border-gray-50 px-3 py-2 mt-2 rounded-lg bg-orange-500 text-white"
+            >Consent Signature</a
+          >
+        </li>
+        {% else %}
+        <li class="text-muted">No documents</li>
+        {% endfor %}
+      </ul>
+    </div> -->
+    <div class="col-md6">
+      <!-- <strong>Qualification Documents</strong> -->
+      <ul>
+        {% for doc in nurse.police %}
+        <li>
+          <a
+            href="https://wecarehhcs.in{{ doc }}"
+            target="_blank"
+            class="border font-semibold border-gray-50 px-3 py-2 mt-2 rounded-lg bg-red-500 text-white"
+            >Police Verification Doc</a
+          >
+        </li>
+        {% else %}
+        <li class="text-muted">No documents</li>
+        {% endfor %}
+      </ul>
     </div>
   </div>
 </div>
@@ -169,49 +252,6 @@ block content %}
     <li class="text-muted">No visits recorded</li>
     {% endfor %}
   </ul>
-</div>
-
-<!-- ================= DOCUMENTS ================= -->
-<div class="bg-card mb-3 border border-gray-50/20 rounded-2xl shadow-soft4">
-  <h5 class="p-3">Documents</h5>
-
-  <div class="ro flex flexcol gap-3 px-3 pb-3">
-    <div class="col-md6">
-      <!-- <strong>Qualification Documents</strong> -->
-      <ul>
-        {% for doc in nurse.qualification_docs %}
-        <li>
-          <a
-            href="https://wecarehhcs.in{{ doc }}"
-            target="_blank"
-            class="border font-semibold border-gray-50 px-3 py-2 mt-2 rounded-lg bg-primary text-white"
-            >Qualification Documents</a
-          >
-        </li>
-        {% else %}
-        <li class="text-muted">No documents</li>
-        {% endfor %}
-      </ul>
-    </div>
-
-    <div class="col-md6">
-      <!-- <strong>Experience Documents</strong> -->
-      <ul>
-        {% for doc in nurse.experience_docs %}
-        <li>
-          <a
-            href="https://wecarehhcs.in{{ doc }}"
-            target="_blank"
-            class="border font-semibold border-gray-50 px-3 py-2 mt-2 rounded-lg bg-green-600 text-white"
-            >Experience Documents</a
-          >
-        </li>
-        {% else %}
-        <li class="text-muted">No documents</li>
-        {% endfor %}
-      </ul>
-    </div>
-  </div>
 </div>
 
 <link

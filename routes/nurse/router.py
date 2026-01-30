@@ -146,6 +146,7 @@ class NurseSelfSignupRequest(BaseModel):
     aadhaar_back: Optional[str] = None
     qualification_docs: List[str] = Field(default_factory=list)
     experience_docs: List[str] = Field(default_factory=list)
+    police: List[str] = Field(default_factory=list)
     profile_photo: Optional[str] = None
     digital_signature: Optional[str] = None
     joining_date: Optional[date] = None
@@ -155,7 +156,6 @@ class NurseSelfSignupRequest(BaseModel):
 @router.get("/about-us-get")
 def get_about_us():
     about = AboutUs.objects.first()
-    # print(about.to_json())
     # 🔥 if no data → return default empty
     if not about:
         return {
@@ -177,6 +177,8 @@ def get_about_us():
 
 @router.post("/self-signup", response_model=NurseResponse)
 def nurse_self_signup(payload: NurseSelfSignupRequest):
+
+    print(payload)
 
     # ❌ Duplicate check
     if User.objects(phone=payload.phone).first():
@@ -225,6 +227,7 @@ def get_my_profile(current_user: User = Depends(get_current_user)):
     if not nurse:
         raise HTTPException(404, "Profile not found")
 
+    print(nurse.profile_photo)
     return {
         # USER
         "phone": current_user.phone,
@@ -234,6 +237,7 @@ def get_my_profile(current_user: User = Depends(get_current_user)):
         "email": current_user.email,
 
         # PROFILE
+        "police": nurse.police,
         "nurse_type": nurse.nurse_type,
         "aadhaar_number": nurse.aadhaar_number,
         "qualification_docs": nurse.qualification_docs,
@@ -241,6 +245,7 @@ def get_my_profile(current_user: User = Depends(get_current_user)):
         "profile_photo": nurse.profile_photo,
         "digital_signature": nurse.digital_signature,
         "joining_date": nurse.joining_date,
+
     }
 
 @router.put("/self-signup/update")
@@ -254,7 +259,6 @@ def update_my_profile(
 
     # 🔹 update user
     current_user.update(
-        set__phone=payload.phone,
         set__other_number=payload.other_number,
         set__name=payload.name,
         set__father_name=payload.father_name,
@@ -264,9 +268,9 @@ def update_my_profile(
     # 🔹 update nurse
     nurse.update(
         set__nurse_type=payload.nurse_type,
-        set__aadhaar_number=payload.aadhaar_number,
         set__qualification_docs=payload.qualification_docs,
         set__experience_docs=payload.experience_docs,
+        set__police=payload.police,
         set__profile_photo=payload.profile_photo,
         set__digital_signature=payload.digital_signature,
         set__joining_date=payload.joining_date,

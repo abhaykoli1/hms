@@ -55,11 +55,11 @@ class NurseProfile(Document):
     joining_date = DateField()
     resignation_date = DateField()
 
-
     verification_status = StringField(
         choices=["PENDING", "APPROVED", "REJECTED"],
         default="PENDING"
     )
+    police = ListField(StringField(), default=list)
     police_verification_status = StringField(
         choices=["PENDING", "CLEAR", "FAILED"],
         default="PENDING"
@@ -510,3 +510,17 @@ class PatientBill(Document):
 #     bill_month = StringField()
 
 #     created_at = DateTimeField(default=datetime.utcnow)
+
+
+
+
+
+class EquipmentTable(Document):
+    title = StringField(required=True)
+    image = StringField(required=True)
+
+
+class UserEquipmentRequest(Document):
+    patient = ReferenceField("PatientProfile", required=True)
+    equipment = ReferenceField(EquipmentTable, required=True)
+    status = BooleanField(default=False)

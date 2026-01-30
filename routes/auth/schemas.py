@@ -63,3 +63,34 @@ class NurseCreateWithConsentRequest(BaseModel):
                  # 1–31
 class SignatureUpdateSchema(BaseModel):
     signature_path: str
+
+class EquipmentRequestCreate(BaseModel):
+    equipment_id: str
+
+
+class EquipmentRequestUpdate(BaseModel):
+    status: Optional[bool] = None
+
+
+class EquipmentResponse(BaseModel):
+    id: str
+    patient_id: str
+    equipment_id: str
+    equipment_title: str
+    equipment_image: str
+    status: bool
+
+class EquipmentCreate(BaseModel):
+    title: str
+    image: str
+
+
+class EquipmentUpdate(BaseModel):
+    title: Optional[str] = None
+    image: Optional[str] = None
+
+
+class EquipmentResponse(BaseModel):
+    id: str
+    title: str
+    image: str

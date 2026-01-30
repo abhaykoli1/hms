@@ -502,7 +502,7 @@ def sos(request: Request):
         .order_by("-created_at")
         
     )
-    print("SOS Alerts Count:", sos_qs.to_json())
+    # print("SOS Alerts Count:", sos_qs.to_json())
     return templates.TemplateResponse(
         "admin/sos.html",
         {
@@ -629,21 +629,22 @@ def nurse_detail_page(
 
     # ================= COMPLETE NURSE DUMP =================
     print("\n--- USER DATA ---")
-    print("Phone:", user.phone)
-    print("Other Number:", user.other_number)
-    print("Email:", user.email)
-    print("Role:", user.role)
+    # print("Phone:", user.phone)
+    # print("Other Number:", user.other_number)
+    # print("Email:", user.email)
+    # print("Role:", user.role)
 
-    print("\n--- NURSE PROFILE ---")
-    print("Type:", nurse.nurse_type)
-    print("Aadhaar:", nurse.aadhaar_number)
-    print("Verified:", nurse.verification_status)
-    print("Police Verification:", nurse.police_verification_status)
-    print("Joining:", nurse.joining_date)
-    print("Resignation:", nurse.resignation_date)
-    print("Qualification Docs:", nurse.qualification_docs)
-    print("Experience Docs:", nurse.experience_docs)
-    print("Profile Photo:",  nurse.profile_photo)
+    # print("\n--- NURSE PROFILE ---")
+    # print("Type:", nurse.nurse_type)
+    # print("Aadhaar:", nurse.aadhaar_number)
+    # print("Verified:", nurse.verification_status)
+    # print("Police Verification:", nurse.police_verification_status)
+    # print("PoliceDoc:", nurse.police)
+    # print("Joining:", nurse.joining_date)
+    # print("Resignation:", nurse.resignation_date)
+    # print("Qualification Docs:", nurse.qualification_docs)
+    # print("Experience Docs:", nurse.experience_docs)
+    print("Profile Photo:",  nurse.digital_signature)
 
     print("========================================\n")
 
@@ -954,4 +955,19 @@ def staff_manage_page(request: Request):
             "request": request,
             "staff": staff
         }
+    )
+
+
+@router.get("/equipment")
+def equipment_page(request: Request):
+    return templates.TemplateResponse(
+        "admin/equipment.html",
+        {"request": request}
+    )
+
+@router.get("/request-equipment")
+def equipment_page(request: Request):
+    return templates.TemplateResponse(
+        "admin/equipment_requests.html",
+        {"request": request}
     )

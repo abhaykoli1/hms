@@ -1,0 +1,117 @@
+{% extends "admin/base.html" %} {% block title %}Equipment Requests{% endblock
+%} {% block content %}
+
+<div class="space-y-6">
+  <!-- TABLE CARD -->
+  <div class="bg-card border border-gray-50/20 rounded-2xl shadow-soft4">
+    <div class="d-flex p-3 justify-content-between align-items-center">
+      <h5 class="mb-0 text-md">📦 Equipment Requests</h5>
+      <!-- <div class="d-flex gap-2">
+        <button
+          class="bg-green-500 text-white px-2 py-1.5 !rounded-xl hover:bg-green-600 transition-colors"
+          onclick="window.location.href = '/admin/create/nurse'"
+        >
+          ➕ Add Nurse
+        </button>
+      </div> -->
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Image</th>
+            <th>Equipment</th>
+            <th>Patient</th>
+            <th>Address</th>
+            <th>Status</th>
+            <th width="160">Action</th>
+          </tr>
+        </thead>
+
+        <tbody id="requestTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_BASE = "/equipment";
+
+  //////////////////////////////////////////////////////
+  // LOAD ALL REQUESTS
+  //////////////////////////////////////////////////////
+  async function loadRequests() {
+    const res = await fetch(`${API_BASE}/request-equipment/all`);
+    const data = await res.json();
+
+    const table = document.getElementById("requestTable");
+    table.innerHTML = "";
+
+    if (!data.length) {
+      table.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center text-muted">
+          No requests found
+        </td>
+      </tr>
+    `;
+      return;
+    }
+
+    data.forEach((r) => {
+      const statusBadge = r.status
+        ? `<span class="badge bg-success">Approved</span>`
+        : `<span class="badge bg-warning text-dark">Pending</span>`;
+
+      const actionBtn = r.status
+        ? `<button class="btn btn-sm btn-secondary" disabled>Approved</button>`
+        : `<button class="btn btn-sm btn-success"
+            onclick="approveRequest('${r.id}')">
+            Approve
+         </button>`;
+
+      table.innerHTML += `
+      <tr>
+
+        <td>
+          <img src="${r.equipment_image}"
+               width="55"
+               height="55"
+               class="rounded shadow-sm object-fit-cover">
+        </td>
+
+        <td class="fw-semibold">${r.equipment_title}</td>
+
+        <td>${r.patient_name}</td>
+        
+<td>${r.ward}</td>
+        <td>${statusBadge}</td>
+
+        <td>${actionBtn}</td>
+
+      </tr>
+    `;
+    });
+  }
+
+  //////////////////////////////////////////////////////
+  // APPROVE REQUEST
+  //////////////////////////////////////////////////////
+  async function approveRequest(id) {
+    if (!confirm("Approve this request?")) return;
+
+    await fetch(`${API_BASE}/request-equipment/approve/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: true }),
+    });
+
+    loadRequests(); // refresh
+  }
+
+  //////////////////////////////////////////////////////
+
+  loadRequests();
+</script>
+
+{% endblock %}

@@ -6,14 +6,16 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException
 from core.dependencies import get_current_user
 from models import (
-    Medicine, NurseDuty, NurseProfile, PatientProfile, PatientDailyNote,
-    PatientVitals, PatientMedication, RelativeAccess, User
+    EquipmentTable, Medicine, NurseDuty, NurseProfile, PatientProfile, PatientDailyNote,
+    PatientVitals, PatientMedication, RelativeAccess, User, UserEquipmentRequest
 )
 from datetime import datetime
 from mongoengine.errors import NotUniqueError
 from pydantic import BaseModel, EmailStr
+from routes.auth.schemas import EquipmentCreate, EquipmentRequestCreate, EquipmentRequestUpdate, EquipmentUpdate
 
 router = APIRouter(prefix="/patient", tags=["Patient"])
+equipment_router = APIRouter(prefix="/equipment")
 
 @router.post("/create")
 def create_patient(payload: dict):
@@ -691,3 +693,173 @@ def update_patient_profile(
         "success": True,
         "message": "Profile updated successfully"
     }
+
+
+@equipment_router.get("/equipment-getall")
+def get_all_equipment():
+
+    equipments = EquipmentTable.objects()
+
+    data = [
+        {
+            "id": str(e.id),
+            "title": e.title,
+            "image": e.image
+        }
+        for e in equipments
+    ]
+
+    return data
+
+@equipment_router.post("/create-equipment")
+def create_equipment(payload: EquipmentCreate):
+
+    equipment = EquipmentTable(
+        title=payload.title,
+        image=payload.image
+    ).save()
+
+    return {
+        "message": "Equipment created successfully",
+        "id": str(equipment.id)
+    }
+
+@equipment_router.get("/equipment-get/{equipment_id}")
+def get_single_equipment(equipment_id: str):
+
+    equipment = EquipmentTable.objects(id=equipment_id).first()
+
+    if not equipment:
+        raise HTTPException(404, "Equipment not found")
+
+    return {
+        "id": str(equipment.id),
+        "title": equipment.title,
+        "image": equipment.image
+    }
+
+@equipment_router.put("/equipment-update/{equipment_id}")
+def update_equipment(equipment_id: str, payload: EquipmentUpdate):
+
+    equipment = EquipmentTable.objects(id=equipment_id).first()
+
+    if not equipment:
+        raise HTTPException(404, "Equipment not found")
+
+    if payload.title is not None:
+        equipment.title = payload.title
+
+    if payload.image is not None:
+        equipment.image = payload.image
+
+    equipment.save()
+
+    return {"message": "Equipment updated successfully"}
+
+@equipment_router.delete("/equipment-delete/{equipment_id}")
+def delete_equipment(equipment_id: str):
+
+    equipment = EquipmentTable.objects(id=equipment_id).first()
+
+    if not equipment:
+        raise HTTPException(404, "Equipment not found")
+
+    equipment.delete()
+
+    return {"message": "Equipment deleted successfully"}
+
+@equipment_router.post("/request-equipment")
+def create_request(payload: EquipmentRequestCreate,user=Depends(get_current_user)):
+
+    patient = PatientProfile.objects(user=user).first()
+    if not patient:
+        raise HTTPException(404, "Patient not found")
+
+    equipment = EquipmentTable.objects(id=payload.equipment_id).first()
+    if not equipment:
+        raise HTTPException(404, "Equipment not found")
+
+    # prevent duplicate request
+    existing = UserEquipmentRequest.objects(
+        patient=patient,
+        equipment=equipment
+    ).first()
+
+    if existing:
+        raise HTTPException(400, "Request already exists")
+
+    req = UserEquipmentRequest(
+        patient=patient,
+        equipment=equipment
+    ).save()
+
+    return {
+        "message": "Equipment request created",
+        "id": str(req.id)
+    }
+
+@equipment_router.get("/request-equipment/all")
+def get_all_requests():
+
+    requests = UserEquipmentRequest.objects.select_related()
+
+    data = []
+
+    for r in requests:
+        data.append({
+            "id": str(r.id),
+            "patient_id": str(r.patient.id),
+            "patient_name": getattr(r.patient.user, "name", ""),
+            "ward": str(r.patient.address),
+            "equipment_id": str(r.equipment.id),
+            "equipment_title": r.equipment.title,
+            "equipment_image": r.equipment.image,
+            "status": r.status
+        })
+    print(data)
+
+    return data
+
+@equipment_router.get("/request-equipment/patient/{patient_id}")
+def get_patient_requests(patient_id: str):
+
+    requests = UserEquipmentRequest.objects(patient=patient_id).select_related()
+
+    data = []
+
+    for r in requests:
+        data.append({
+            "id": str(r.id),
+            "equipment_title": r.equipment.title,
+            "equipment_image": r.equipment.image,
+            "status": r.status
+        })
+
+    return data
+
+@equipment_router.put("/request-equipment/approve/{request_id}")
+def update_request(request_id: str, payload: EquipmentRequestUpdate):
+
+    req = UserEquipmentRequest.objects(id=request_id).first()
+
+    if not req:
+        raise HTTPException(404, "Request not found")
+
+    if payload.status is not None:
+        req.status = payload.status
+
+    req.save()
+
+    return {"message": "Request updated successfully"}
+
+@equipment_router.delete("/request-equipment/delete/{request_id}")
+def delete_request(request_id: str):
+
+    req = UserEquipmentRequest.objects(id=request_id).first()
+
+    if not req:
+        raise HTTPException(404, "Request not found")
+
+    req.delete()
+
+    return {"message": "Request deleted"}

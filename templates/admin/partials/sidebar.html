@@ -56,6 +56,21 @@
       <div class="flex items-center gap-3">🧾 Self Registered</div>
       <span>›</span>
     </a>
+    <a
+      href="/admin/request-equipment"
+      class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/request-equipment' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
+    >
+      <div class="flex items-center gap-3">🧾 Equipment requests</div>
+      <span>›</span>
+    </a>
+    <!-- Equipment -->
+    <a
+      href="/admin/equipment"
+      class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path.startswith('/admin/equipment') %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
+    >
+      <div class="flex items-center gap-3">🛠️ Equipment</div>
+      <span>›</span>
+    </a>
 
     <!-- Doctors -->
     <a
@@ -174,6 +189,7 @@
       <div class="flex items-center gap-3">🧑‍🦽 Patients</div>
       <span>›</span>
     </a>
+
     {% endif %}
     <!--  -->
     {% if role == "PATIENT" %}

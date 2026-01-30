@@ -10,7 +10,7 @@ from routes.nurse.router import router as nurse_router
 from routes.nurse.admin_router import router as admin_nurse_router
 from routes.doctor.router import router as doctor_router
 from routes.doctor.admin_router import router as admin_doctor_router
-from routes.patient.router import router as patient_router
+from routes.patient.router import router as patient_router ,equipment_router
 from routes.patient.admin_router import router as admin_patient_router
 from routes.relative.router import router as relative_router
 from routes.billing.admin_router import router as billing_admin_router
@@ -66,7 +66,7 @@ async def admin_auth_guard(request: Request, call_next):
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/media", StaticFiles(directory="media"), name="media")
-# app.include_router(upload_router)
+app.include_router(equipment_router)
 app.include_router(about_router)
 app.include_router(digikey_router)
 app.include_router(upload_router)
