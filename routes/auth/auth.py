@@ -136,76 +136,7 @@ def verify_otp(data: VerifyOTPRequest):
         "token_type": "bearer"
     }
 
-# @router.post("/verify-otp")
-# def verify_otp(data: VerifyOTPRequest):
 
-#     user = User.objects(phone=data.phone).first()
-
-#     if not user or not user.otp_session:
-#         raise HTTPException(400, "OTP session missing")
-
-#     params = {
-#         "api_key": API_KEY,
-#         "otp_session": user.otp_session,
-#         "otp_entered_by_user": data.otp
-#     }
-
-#     try:
-#         res = requests.get(BASE_URL, params=params, timeout=10)
-#         response = res.json()
-#     except:
-#         raise HTTPException(500, "OTP service unreachable")
-
-#     # ✅ FIX HERE
-#     if res.status_code != 200 or response.get("Status") != "Success":
-#         raise HTTPException(400, "Invalid OTP")
-
-#     # ✅ success
-#     user.otp_verified = True
-#     user.otp_session = None
-#     user.last_login = datetime.utcnow()
-
-#     if not user.is_active:
-#         raise HTTPException(403, "User blocked")
-
-#     user.save()
-
-#     token = create_access_token({
-#         "user_id": str(user.id),
-#         "role": user.role
-#     })
-
-#     return {
-#         "access_token": token,
-#         "role": user.role
-#     }
-
-# @router.post("/verify-otp",)
-# def verify_otp(data: VerifyOTPRequest):
-#     if data.otp != STATIC_OTP:
-#         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid OTP")
-
-#     user = User.objects(phone=data.phone).first()
-#     if not user:
-#         # Create new user
-#        raise HTTPException(status.HTTP_404_NOT_FOUND, "User not found")
-#     else:
-#         user.otp_verified = True
-#         if not user.is_active:
-#             raise HTTPException(status.HTTP_403_FORBIDDEN, "User blocked")
-        
-
-  
-#     # user.role = data.role
-#     user.last_login = datetime.utcnow()
-#     user.save()
-
-#     token = create_access_token({
-#         "user_id": str(user.id),
-#         "role": user.role
-#     })
-
-#     return {"access_token": token, "role": user.role}
 
 
 
@@ -225,10 +156,13 @@ def login_password(data: PasswordLoginRequest):
     user.last_login = datetime.utcnow()
     user.save()
 
-    token = create_access_token({
-        "user_id": str(user.id),
-        "role": user.role
-    })
+    token = create_access_token(
+        {
+            "user_id": str(user.id),
+            "role": user.role
+        },
+        user.token_version
+    )
 
     response = JSONResponse({
         "access_token": token,
