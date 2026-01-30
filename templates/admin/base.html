@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{% block title %}Admin{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Your custom UI -->
+    <link rel="stylesheet" href="/static/admin/ui.css" />
+  </head>
+
+  <body onload="guard()">
+    <!-- Global layout / auth JS -->
+    <script src="/static/admin/layout.js"></script>
+
+    <!-- SIDEBAR -->
+    {% include "admin/partials/sidebar.html" %}
+
+    <!-- MAIN -->
+    <div class="main">
+      <!-- TOP BAR -->
+      <div class="topbar !-mt-3 !mb-4">
+        {% block topbar %}
+        <input
+          class="bg-white px-2.5 py-2.5 border border-gray-50/20 rounded-xl w-96 shadow-sm"
+          placeholder="Search patients, nurses, doctors"
+        />
+
+        <!-- <img src="../../media/logos/wecare_header.png" class="h-12" /> -->
+        <div
+          class="px-2.5 h-10 w-10 flex items-center justify-center font-bold border border-gray-50 cursor-pointer py-2.5 !rounded-full shadow-sm bg-sky-100"
+        >
+          A
+        </div>
+        {% endblock %}
+      </div>
+
+      <!-- PAGE CONTENT -->
+      {% block content %}{% endblock %}
+    </div>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#38bdf8",
+              sidebar: "#f6f9fc",
+              card: "#ffffff",
+              muted: "#94a3b8",
+              danger: "#f43f5e",
+            },
+            boxShadow: {
+              soft: "0 8px 24px rgba(0,0,0,0.05)",
+            },
+          },
+        },
+      };
+    </script>
+    <!-- 🔥 Bootstrap JS -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script> -->
+
+    <!-- 🔥🔥 THIS LINE WAS MISSING (MANDATORY) -->
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

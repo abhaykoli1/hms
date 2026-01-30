@@ -1,0 +1,433 @@
+{% extends "admin/base.html" %}
+{% block title %}Manage Nurse{% endblock %}
+
+{% block content %}
+
+<div class="bg-card p-3 mb-3 border border-gray-50/20 rounded-2xl shadow-soft4">
+  <h4>Manage Nurse</h4>
+  <p class="text-muted">Admin controls & verification</p>
+</div>
+
+<form id="nurseForm">
+
+<!-- <div class="overflow-auto">
+  <table class="table table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Name</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% if patients %}
+        {% for patient in patients %}
+        <tr>
+          <td>{{ patient.user.name }}</td>
+          <td>{{ patient.id }}</td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td class="text-center text-muted">No patients found</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div> -->
+
+
+  <!-- ================= VERIFICATION ================= -->
+ <div class="bg-card px-3  pt-3 mb-3 border border-gray-50/20 rounded-2xl shadow-soft4">
+
+    <h5 class="text-md font-semibold mb-2 ">Verification</h5>
+
+    <div class="form-check mb-2">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        name="aadhaar_verified"
+        {{ 'checked' if nurse.aadhaar_verified else '' }}
+      />
+      <label class="form-check-label ">Aadhaar Verified</label>
+    </div>
+
+    <div class="form-check mb-2">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        name="digital_signature_verify"
+        {{ 'checked' if nurse.digital_signature_verify else '' }}
+      />
+      <label class="form-check-label ">Signature Verified</label>
+    </div>
+
+    <div class="mb-3">
+      <label>Police Verification</label>
+      <select class="form-select" name="police_verification_status">
+        {% for s in ["PENDING","CLEAR","FAILED"] %}
+        <option value="{{ s }}"
+          {{ 'selected' if nurse.police_verification_status == s else '' }}>
+          {{ s }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- ================= PROFILE ================= -->
+ <div class="bg-card px-3  py-3 mb-3 border border-gray-50/20 rounded-2xl shadow-soft4">
+   <h5 class="text-md font-semibold mb-2 ">Profile</h5>
+
+    <div class="row">
+      <div class="col-md-4 mb-3">
+        <label>Nurse Type</label>
+        <select class="form-select" name="nurse_type">
+          {% for t in ["GNM","ANM","CARETAKER","PHYSIO","COMBO","OTHER"] %}
+          <option value="{{ t }}"
+            {{ 'selected' if nurse.nurse_type == t else '' }}>
+            {{ t }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <label>Joining Date</label>
+        <input
+          type="date"
+          class="form-control"
+          name="joining_date"
+          value="{{ nurse.joining_date.strftime('%Y-%m-%d') if nurse.joining_date else '' }}"
+        />
+      </div>
+
+      <div class="col-md-4 mb-3">
+        <label>Resignation Date</label>
+        <input
+          type="date"
+          class="form-control"
+          name="resignation_date"
+          value="{{ nurse.resignation_date.strftime('%Y-%m-%d') if nurse.resignation_date else '' }}"
+        />
+      </div>
+    </div>
+
+    <div class="form-check mt-2">
+      <input
+        class="form-check-input"
+        type="checkbox"
+        name="is_active"
+        {{ 'checked' if nurse.user and nurse.user.is_active else '' }}
+      />
+      <label class="form-check-label">Active Nurse</label>
+    </div>
+  </div>
+
+  <!-- ================= SALARY ================= -->
+ <div class="bg-card px-3  pt-3 mb-3 border border-gray-50/20 rounded-2xl shadow-soft4">
+ <h5 class="text-md font-semibold mb-2 ">Salary & Payment</h5>
+
+    <div class="row">
+      <div class="col-md-3 mb-3">
+        <label>Salary Type</label>
+        <select class="form-select" name="salary_type">
+          {% for t in ["DAILY","MONTHLY"] %}
+          <option value="{{ t }}"
+            {{ 'selected' if consent and consent.salary_type == t else '' }}>
+            {{ t }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <label>Salary Amount</label>
+        <input
+          type="number"
+          step="0.01"
+          class="form-control"
+          name="salary_amount"
+          value="{{ consent.salary_amount if consent else '' }}"
+          required
+        />
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <label>Payment Mode</label>
+        <select class="form-select" name="payment_mode">
+          {% for p in ["CASH","BANK","UPI"] %}
+          <option value="{{ p }}"
+            {{ 'selected' if consent and consent.payment_mode == p else '' }}>
+            {{ p }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <label>Salary Date</label>
+        <input
+          type="number"
+          min="1"
+          max="31"
+          class="form-control"
+          name="salary_date"
+          value="{{ consent.salary_date if consent else '' }}"
+          required
+        />
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- ================= SUBMIT ================= -->
+  <button type="button" class="btn btn-success" id="submitBtn">
+    💾 Save Changes
+  </button>
+  <!-- <a href="/admin/nurses/{{ nurse.id }}" class="btn btn-secondary">Cancel</a> -->
+</form>
+
+
+<!-- ================= VISIT CREATE ================= -->
+<div class="bg-card px-3 py-3 mt-4 border border-gray-50/20 rounded-2xl shadow-soft4">
+
+  <h5 class="text-md font-semibold mb-3">➕ Create Visit For This Nurse</h5>
+
+  <div class="row g-3">
+
+    <!-- Patient -->
+    <div class="col-md-6">
+      <label class="form-label">Patient</label>
+      <select id="patient_id" class="form-select">
+        <option value="">Select Patient</option>
+        {% for patient in patients %}
+        <option value="{{ patient.id }}">
+          {{ patient.user.name }} ({{ patient.user.phone }})
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Visit Type -->
+    <div class="col-md-3">
+      <label class="form-label">Visit Type</label>
+      <select id="visit_type" class="form-select">
+        <option value="ROUTINE">ROUTINE</option>
+        <option value="MEDICATION">MEDICATION</option>
+        <option value="EMERGENCY">EMERGENCY</option>
+        <option value="FOLLOW_UP">FOLLOW_UP</option>
+        <option value="OTHER">OTHER</option>
+      </select>
+    </div>
+
+    <!-- Duty Location -->
+    <div class="col-md-3">
+      <label class="form-label">Duty Location</label>
+      <select id="dutyLocation" class="form-select" onchange="toggleLocationFields()">
+        <option value="HOSPITAL">Hospital</option>
+        <option value="HOME">Home</option>
+      </select>
+    </div>
+
+    <!-- Hospital Fields -->
+    <div class="col-md-3 hospital-field">
+      <label class="form-label">Ward</label>
+      <input id="ward" class="form-control">
+    </div>
+
+    <div class="col-md-3 hospital-field">
+      <label class="form-label">Room</label>
+      <input id="room_no" class="form-control">
+    </div>
+
+    <!-- Home Address -->
+    <div class="col-md-6 home-field d-none">
+      <label class="form-label">Home Address</label>
+      <textarea id="address" class="form-control" rows="2"></textarea>
+    </div>
+
+  </div>
+
+  <div class="mt-3">
+    <button class="btn btn-primary" onclick="createVisit()">
+      💾 Create Visit
+    </button>
+  </div>
+</div>
+
+
+<!-- ================= JS ================= -->
+<script>
+function headers() {
+  return {
+    "Authorization": "Bearer " + localStorage.getItem("token")
+  };
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+
+ if (!localStorage.getItem("token")) {
+    window.location.href = "/admin/login";
+    return;
+  }
+
+  const form = document.getElementById("nurseForm");
+  const btn = document.getElementById("submitBtn");
+
+  btn.addEventListener("click", async () => {
+    const formData = new FormData(form);
+
+    /* ✅ ONLY CHANGE FOR NEW API */
+    formData.set("aadhaar_verified", form.aadhaar_verified.checked);
+    formData.set("digital_signature_verify", form.digital_signature_verify.checked);
+    formData.set("is_active", form.is_active.checked);
+
+    const res = await fetch(`/admin/nurse/{{ nurse.id }}/update`, {
+      method: "POST",
+      headers: headers(),
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.detail || "❌ Update failed");
+      return;
+    }
+
+    alert("✅ Nurse updated successfully");
+    window.location.reload();
+  });
+});
+</script>
+
+
+
+<script>
+
+  function toggleLocationFields() {
+  const location = document.getElementById("dutyLocation").value;
+
+  document.querySelectorAll(".hospital-field").forEach(el => {
+    el.classList.toggle("d-none", location === "HOME");
+  });
+
+  document.querySelectorAll(".home-field").forEach(el => {
+    el.classList.toggle("d-none", location === "HOSPITAL");
+  });
+}
+
+// async function createVisit() {
+
+//   const nurseId = "{{ nurse.id }}"; 
+//   console.log("🔍 Nurse ID:", nurseId) ;
+//   const payload = {
+//     nurse_id: nurseId,
+//     patient_id: document.getElementById("patient_id").value,
+//     visit_type: document.getElementById("visit_type").value,
+//     ward: document.getElementById("ward").value || null,
+//     room_no: document.getElementById("room_no").value || null,
+//     // notes: document.getElementById("notes").value || null
+//   };
+
+//   console.log("📤 Visit Payload:", payload);
+
+//    if (!payload.nurse_id || !payload.patient_id) {
+//       // alert("Select nurse & patient");
+//     alert("Select patient");
+//     return;
+//   }
+
+//   try {
+//     const res = await fetch(`/nurse/visit/create-admin`, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         "Authorization": "Bearer " + localStorage.getItem("token")
+//       },
+//       body: JSON.stringify(payload)
+//     });
+
+//     const data = await res.json();
+
+//     console.log("📥 Response:", res);
+
+//     if (!res.ok) {
+//       alert(data.detail || "Failed");
+//       return;
+//     }
+
+//     alert("✅ Visit created successfully");
+//     location.reload();
+
+//   } catch (err) {
+//     console.log(err);
+//     alert("Server error");
+//   }
+// }
+
+async function createVisit() {
+
+  const nurseId = "{{ nurse.id }}";
+
+  const dutyLocation = document.getElementById("dutyLocation").value;
+
+  const payload = {
+    nurse_id: nurseId,
+    patient_id: document.getElementById("patient_id").value,
+    visit_type: document.getElementById("visit_type").value,
+    dutyLocation: dutyLocation
+  };
+
+  if (!payload.patient_id) {
+    alert("Select patient");
+    return;
+  }
+
+  // 🏥 Hospital
+  if (dutyLocation === "HOSPITAL") {
+    payload.ward = document.getElementById("ward").value || null;
+    payload.room_no = document.getElementById("room_no").value || null;
+  }
+
+  // 🏠 Home
+  if (dutyLocation === "HOME") {
+    payload.address = document.getElementById("address").value;
+    if (!payload.address) {
+      alert("Address is required for Home visit");
+      return;
+    }
+  }
+
+  console.log("📤 Visit Payload:", payload);
+
+  try {
+    const res = await fetch(`/nurse/visit/create-admin`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.detail || "Failed");
+      return;
+    }
+
+    alert("✅ Visit created successfully");
+    location.reload();
+
+  } catch (err) {
+    console.error(err);
+    alert("Server error");
+  }
+}
+</script>
+
+
+{% endblock %}

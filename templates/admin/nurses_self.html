@@ -1,0 +1,150 @@
+{% extends "admin/base.html" %} {% block title %}Self Registered Nurses{%
+endblock %} {% block content %}
+
+<div class="bg-card border border-gray-50/20 rounded-2xl shadow-soft4">
+  <!-- HEADER -->
+  <div class="d-flex p-3 justify-content-between align-items-center">
+    <div>
+      <h5 class="mb-0 text-md">Self Registered Nurses</h5>
+      <small class="text-muted">
+        Nurses who signed up themselves (Admin approval pending)
+      </small>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <table class="table table-hover align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Nurse</th>
+        <th>Type</th>
+        <th>Addhaar</th>
+        <th>Police</th>
+        <th>Signaure</th>
+        <th>Status</th>
+        <th class="text-center">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% if nurses %} {% for nurse in nurses %}
+      <tr>
+        <!-- NAME -->
+        <td>
+          <div class="d-flex align-items-center gap-2">
+            {% if nurse.profile_photo %}
+            <img
+              src="https://wecarehhcs.in{{ nurse.profile_photo }}"
+              style="width: 36px; height: 36px; border-radius: 50%"
+            />
+            {% else %}
+            <div
+              style="
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: #e5e7eb;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              👩‍⚕️
+            </div>
+            {% endif %}
+
+            <div>
+              <div class="fw-semibold">{{ nurse.user.phone }}</div>
+              <small class="text-muted">
+                {{ nurse.user.name }}
+                <span class="badge bg-primary ms-1">SELF</span>
+              </small>
+            </div>
+          </div>
+        </td>
+
+        <!-- TYPE -->
+        <td>
+          <span class="badge bg-info text-dark"> {{ nurse.nurse_type }} </span>
+        </td>
+
+        <!-- VERIFICATION -->
+        <td>
+          {% if nurse.aadhaar_verified == true %}
+          <span class="badge bg-success">Verified</span>
+          {% elif nurse.aadhaar_verified == false %}
+          <span class="badge bg-danger">Not Verified</span>
+          {% else %}
+          <span class="badge bg-warning text-dark">Pending</span>
+          {% endif %}
+        </td>
+
+        <!-- <td>
+          <span class="badge bg-warning text-dark"> Pending </span>
+        </td> -->
+
+        <!-- POLICE -->
+        <td>
+          {% if nurse.police_verification_status == "CLEAR" %}
+          <span class="badge bg-success">Cleared</span>
+          {% elif nurse.police_verification_status == "FAILED" %}
+          <span class="badge bg-danger">Failed</span>
+          {% else %}
+          <span class="badge bg-warning text-dark">Pending</span>
+          {% endif %}
+        </td>
+
+        <!-- SIGNATURE -->
+        <td>
+          {% if nurse.digital_signature_verify %}
+          <span class="badge bg-success">Signed</span>
+          {% else %}
+          <span class="badge bg-warning text-dark">Unsigned</span>
+          {% endif %}
+        </td>
+        <!-- <td>
+          <span class="badge bg-warning text-dark"> Pending </span>
+        </td> -->
+
+        <!-- STATUS -->
+        <td>
+          {% if nurse.user.is_active %}
+          <span class="badge bg-success">Active</span>
+          {% else %}
+          <span class="badge bg-secondary">Inactive</span>
+          {% endif %}
+        </td>
+
+        <!-- ACTIONS -->
+        <td class="text-center">
+          <button
+            class="btn btn-sm btn-outline-primary"
+            onclick="window.location.href='/admin/nurses/{{ nurse.id }}'"
+          >
+            👁️
+          </button>
+
+          <a
+            href="/admin/nurses/{{ nurse.id }}/edit"
+            class="btn btn-sm btn-outline-warning"
+          >
+            ✏️
+          </a>
+
+          <button class="btn btn-sm btn-outline-danger" title="Reject">
+            ❌
+          </button>
+        </td>
+      </tr>
+      {% endfor %} {% else %}
+      <tr>
+        <td colspan="6" class="text-center text-muted py-4">
+          No self registered nurses found
+        </td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

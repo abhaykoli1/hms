@@ -1,0 +1,9 @@
+# app/core/config.py
+
+DEFAULT_ADMIN_PHONE = "8432144275"
+DEFAULT_ADMIN_EMAIL = "Hayat@123gmail.com"
+DEFAULT_ADMIN_PASSWORD = "Shahzain@144275"
+
+# 9876543210
+
+# ddwe

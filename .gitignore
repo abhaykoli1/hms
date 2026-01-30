@@ -1,0 +1,12 @@
+
+# ===============================
+# Generated Media (VERY IMPORTANT)
+# ===============================
+media/bills/
+
+env/
+venv/
+__pycache__/
+
+uploads/documents/
+
