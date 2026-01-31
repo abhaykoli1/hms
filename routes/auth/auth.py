@@ -118,6 +118,7 @@ def verify_otp(data: VerifyOTPRequest):
 
 # 🔥 SINGLE SESSION LOGIC
     user.token = data.token
+    print(token)
     user.token_version += 1   # old tokens invalid
     user.save()
 

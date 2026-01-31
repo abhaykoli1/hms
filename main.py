@@ -26,6 +26,7 @@ from routes.upload import router as upload_router
 from routes.digikey.digikey_routes import router as digikey_router
 from routes.sheet.routes import router as sheetRouter
 from routes.staff.routes import router as staff_router
+from routes.fcm.routes.routes import router as notifcationRouter
 
 from jose import JWTError
 from startup import create_default_admin
@@ -38,6 +39,7 @@ app.add_middleware(
     allow_origins=[
         "http://127.0.0.1:8000",
         "http://localhost:8000",
+        "http://192.0.0.2:8000",
         "https://wecarehhcs.in"
     ],
     allow_credentials=True,
@@ -87,6 +89,7 @@ app.include_router(admin_router)
 app.include_router(medicine_admin_router)
 app.include_router(staff_router)
 app.include_router(sheetRouter)
+app.include_router(notifcationRouter)
 @app.on_event("startup")
 def startup_event():
     create_default_admin()
