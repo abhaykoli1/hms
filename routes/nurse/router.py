@@ -191,6 +191,7 @@ def nurse_self_signup(payload: NurseSelfSignupRequest):
         other_number=payload.other_number,
         email=payload.email,
         name=payload.name,
+        password_hash=payload.phone,
         father_name=payload.father_name,
         is_active=False,          # 🔥 ADMIN approval needed
         otp_verified=False
@@ -316,12 +317,12 @@ async def create_nurse(payload: NurseCreateRequest , request: Request):
         # 🔹 Duplicate phone check
         if User.objects(phone=payload.phone).first():
             raise HTTPException(status_code=400, detail="Phone number already registered")
-        
 
         # 🔹 Create User
         user = User(
             role="NURSE",
             phone=payload.phone,
+            password_hash=payload.phone,
             other_number=payload.other_number,
             email=payload.email,
             name=payload.name,

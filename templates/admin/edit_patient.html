@@ -1,7 +1,40 @@
 {% extends "admin/base.html" %} {% block title %}Patient Care{% endblock %} {%
 block content %}
 
-<h4 class="mb-3">🧑‍⚕️ Patient Care Management</h4>
+<!-- ================= HEADER ================= -->
+<div
+  class="bg-card flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-3 mb-4 border border-gray-50/20 rounded-2xl shadow-soft4"
+>
+  <!-- LEFT : Title -->
+  <div>
+    <h4 class="font-semibold mb-1">🧑‍⚕️ Patient Care Management</h4>
+    <p class="text-muted text-sm">
+      Admin controls, nurse assignment & security
+    </p>
+  </div>
+
+  <!-- RIGHT : Password Update -->
+  <div class="flex items-center gap-2">
+    <label>Password:</label>
+
+    <input
+      type="text"
+      id="password_field"
+      placeholder="Update nurse password"
+      class="form-control"
+      style="width: 220px"
+      value="{{ patient.user.password_hash or '' }}"
+    />
+
+    <button
+      type="button"
+      class="btn btn-success px-3"
+      onclick="updatePassword()"
+    >
+      💾
+    </button>
+  </div>
+</div>
 
 <!-- ================= PATIENT INFO ================= -->
 <div class="bg-card mb-3 p-3 border border-gray-50/20 rounded-2xl shadow-soft4">
@@ -233,6 +266,42 @@ block content %}
     });
 
     location.reload();
+  }
+
+  async function updatePassword() {
+    const password = document.getElementById("password_field").value;
+
+    if (!password) {
+      alert("Password required");
+      return;
+    }
+
+    const payload = {
+      phone: "{{ patient.user.phone }}",
+      password: password,
+    };
+
+    try {
+      const res = await fetch("/auth/update-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + localStorage.getItem("token"),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.detail || "Failed");
+        return;
+      }
+
+      alert("✅ Password updated successfully");
+    } catch (err) {
+      alert("Server error");
+    }
   }
 </script>
 

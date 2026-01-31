@@ -14,7 +14,7 @@ class User(Document):
     phone = StringField(required=True, unique=True)
     other_number = StringField(required=False)
     email = EmailField()
-    password_hash = StringField(default="$pbkdf2-sha256$29000$v1fqnbMWQqi1dg4hhJAyJg$i/NU8Lx6vm7TXh5pitQrPvFLS47wHbb8wtKArKmn.NE")     # Admin / Doctor
+    password_hash = StringField()     # Admin / Doctor
     otp_verified = BooleanField(default=False)
     
      # ⭐ ADD THIS

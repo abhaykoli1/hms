@@ -50,6 +50,7 @@ def create_doctor(
         role="DOCTOR",
         name=name,
         phone=phone,
+        password_hash=phone,
         email=email,
         is_active=True,
         created_at=datetime.utcnow()

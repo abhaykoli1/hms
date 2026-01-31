@@ -4,9 +4,11 @@ from .schemas import (
     SendOTPRequest, VerifyOTPRequest,
     PasswordLoginRequest
 )
+
 from fastapi.responses import JSONResponse
 import requests
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
 from models import User
 from core.security import create_access_token, verify_password
 from core.dependencies import get_current_user, admin_required
@@ -149,8 +151,10 @@ def login_password(data: PasswordLoginRequest):
     if not user or not user.password_hash:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
 
-    if not verify_password(data.password, user.password_hash):
+    if data.password != user.password_hash:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
+    # if not verify_password(data.password, user.password_hash):
+    #     raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
 
     if not user.is_active:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "User blocked")
@@ -205,6 +209,7 @@ def block_user(user_id: str, admin: User = Depends(admin_required)):
     return {"message": "User blocked successfully"}
 
 
+
 @router.post("/admin/unblock-user")
 def unblock_user(user_id: str, admin: User = Depends(admin_required)):
     user = User.objects(id=user_id).first()
@@ -214,3 +219,26 @@ def unblock_user(user_id: str, admin: User = Depends(admin_required)):
     user.is_active = True
     user.save()
     return {"message": "User unblocked successfully"}
+
+
+
+class UpdatePasswordRequest(BaseModel):
+    phone: str
+    password: str   # single field only
+
+@router.post("/update-password")
+def update_password(data: UpdatePasswordRequest):
+
+    user = User.objects(phone=data.phone).first()
+
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    # ✅ direct update (no old password check)
+    user.password_hash = data.password
+
+    # logout all sessions
+    user.token_version += 1
+    user.save()
+
+    return {"message": "Password updated successfully"}

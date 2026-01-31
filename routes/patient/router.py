@@ -25,6 +25,7 @@ def create_patient(payload: dict):
             name=payload["name"],
             father_name=payload.get("father_name"),
             phone=payload["phone"],
+            password_hash=payload["phone"],
             other_number=payload.get("other_number"),
             email=payload.get("email"),
         ).save()

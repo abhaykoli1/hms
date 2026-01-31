@@ -36,6 +36,8 @@ def create_profile(
 
     return {"message": "Doctor profile created", "id": str(doc.id)}
 
+
+
 @router.put("/profile/update")
 async def update_profile(
     data: dict,
