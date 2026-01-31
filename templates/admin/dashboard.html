@@ -1,5 +1,44 @@
 {% extends "admin/base.html" %} {% block title %} Dashboard {% endblock %} {%
 block content %}
+<div class="flex justify-between items-center mb-4">
+  <h2 class="text-xl font-semibold">Dashboard Overview</h2>
+
+  <!-- 🔥 DOWNLOAD BUTTON -->
+  <button
+    id="downloadExcelBtn"
+    onclick="downloadExcel()"
+    class="bg-sky-600 hover:bg-sky-700 text-white px-5 py-2 rounded-xl shadow-soft font-medium flex items-center gap-2 transition"
+  >
+    <span id="btnText">⬇ Download Sheets</span>
+    <span id="btnLoader" class="hidden animate-spin">⏳</span>
+  </button>
+</div>
+<!-- FILTER BAR -->
+<form method="get" class="flex gap-3 items-center mb-4">
+  <input
+    type="date"
+    name="start"
+    value="{{ start }}"
+    class="border rounded-lg px-3 py-2"
+  />
+
+  <span>to</span>
+
+  <input
+    type="date"
+    name="end"
+    value="{{ end }}"
+    class="border rounded-lg px-3 py-2"
+  />
+
+  <button type="submit" class="bg-sky-600 text-white px-4 py-2 rounded-lg">
+    Apply
+  </button>
+
+  <a href="/admin/dashboard" class="px-4 py-2 rounded-lg bg-gray-200">
+    Reset
+  </a>
+</form>
 
 <!-- KPI CARDS -->
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
@@ -140,6 +179,41 @@ block content %}
       plugins: { legend: { display: false } }
     }
   });
+</script>
+<script>
+  async function downloadExcel() {
+    const btn = document.getElementById("downloadExcelBtn");
+    const text = document.getElementById("btnText");
+    const loader = document.getElementById("btnLoader");
+
+    try {
+      // loading start
+      btn.disabled = true;
+      text.innerText = "Preparing...";
+      loader.classList.remove("hidden");
+
+      const response = await fetch("/admin/export/excel");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "hospital_export.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Export failed ❌");
+    }
+
+    // loading stop
+    btn.disabled = false;
+    text.innerText = "⬇ Download Sheets";
+    loader.classList.add("hidden");
+  }
 </script>
 
 {% endblock %}

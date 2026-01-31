@@ -62,8 +62,8 @@ block content %}
 </div>
 
 <!-- ================= KPI SUMMARY ================= -->
-<div class="row g-4 mb-4">
-  <div class="col-md-3 flex">
+<div class="flex gap-3 mb-3">
+  <div class="flex w-full">
     <div
       class="card kpi p-3 text-center flex flex-col align-items-center justify-content-center w-full"
     >
@@ -72,12 +72,12 @@ block content %}
     </div>
   </div>
 
-  <div class="col-md-3 flex">
+  <div class="flex w-full">
     <div
       class="card kpi p-3 text-center flex flex-col align-items-center justify-content-center w-full"
     >
       <small>Salary</small>
-      <h3>₹ {{ salary.net_salary if salary else "N/A" }}</h3>
+      <h3>₹ {{ salary.net_salary if salary else "0" }}</h3>
       {% if salary and salary.is_paid %}
       <small class="text-success">Paid</small>
       {% elif salary %}
@@ -86,7 +86,7 @@ block content %}
     </div>
   </div>
 
-  <div class="col-md-3 flex">
+  <!-- <div class="col-md-3 flex">
     <div
       class="card kpi p-3 text-center flex flex-col align-items-center justify-content-center w-full"
     >
@@ -96,9 +96,9 @@ block content %}
       <small>{{ duty.shift }}</small>
       {% endif %}
     </div>
-  </div>
+  </div> -->
 
-  <div class="col-md-3">
+  <!-- <div class="col-md-4">
     <div class="card kpi p-3 text-center">
       <small>Consent Status</small>
       <h3>{{ consent.status if consent else "N/A" }}</h3>
@@ -106,14 +106,14 @@ block content %}
       <small>Version {{ consent.version }}</small>
       {% endif %}
     </div>
-  </div>
+  </div> -->
 </div>
 
 <!-- ================= DOCUMENTS ================= -->
 <div class="bg-card mb-3 border border-gray-50/20 rounded-2xl shadow-soft4">
   <h5 class="p-3">Documents</h5>
 
-  <div class="ro flex flexcol gap-3 px-3 pb-3">
+  <div class="ro flex flex-wrap gap-4 px-3 pb-3">
     <div class="col-md6">
       <!-- <strong>Qualification Documents</strong> -->
       <ul>
@@ -123,7 +123,7 @@ block content %}
             href="https://wecarehhcs.in{{ doc }}"
             target="_blank"
             class="border font-semibold border-gray-50 px-3 py-2 mt-2 rounded-lg bg-primary text-white"
-            >Qualification Documents</a
+            >Qualification</a
           >
         </li>
         {% else %}
@@ -141,7 +141,7 @@ block content %}
             href="https://wecarehhcs.in{{ doc }}"
             target="_blank"
             class="border font-semibold border-gray-50 px-3 py-2 mt-2 rounded-lg bg-green-600 text-white"
-            >Experience Documents</a
+            >Experience</a
           >
         </li>
         {% else %}
@@ -175,7 +175,7 @@ block content %}
             href="https://wecarehhcs.in{{ doc }}"
             target="_blank"
             class="border font-semibold border-gray-50 px-3 py-2 mt-2 rounded-lg bg-red-500 text-white"
-            >Police Verification Doc</a
+            >Police Verification</a
           >
         </li>
         {% else %}

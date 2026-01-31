@@ -9,7 +9,7 @@ from fastapi.params import Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from models import *
-
+from mongoengine.queryset.visitor import Q
 router = APIRouter(prefix="/admin", tags=["Admin Pages"])
 
 templates = Jinja2Templates(directory="templates")
@@ -84,9 +84,18 @@ def self_registered_nurses(request: Request):
 
 # @router.get("/dashboard", response_class=HTMLResponse)
 # def dashboard(request: Request):
-@router.get("/dashboard", response_class=HTMLResponse)
-def dashboard(request: Request, user = Depends(get_current_user)):
 
+@router.get("/dashboard", response_class=HTMLResponse)
+def dashboard(
+    request: Request,
+    start: str | None = None,
+    end: str | None = None,
+    user = Depends(get_current_user)
+):
+
+    # ======================
+    # ROLE REDIRECTS
+    # ======================
     if user.role == "NURSE":
         return RedirectResponse("/admin/nurses")
 
@@ -95,31 +104,45 @@ def dashboard(request: Request, user = Depends(get_current_user)):
 
     if user.role == "PATIENT":
         return RedirectResponse("/admin/patients")
-    
+
     now = datetime.now()
+
+    # ======================
+    # DATE RANGE FILTER
+    # ======================
+    if start and end:
+        start_date = datetime.strptime(start, "%Y-%m-%d")
+        end_date = datetime.strptime(end, "%Y-%m-%d") + timedelta(days=1)
+    else:
+        # default → current month
+        start_date = now.replace(day=1, hour=0, minute=0, second=0)
+        end_date = now + timedelta(days=1)
 
     # ======================
     # KPI
     # ======================
-    total_patients = PatientProfile.objects.count()
+    total_patients = PatientProfile.objects(
+        service_start__gte=start_date.date(),
+        service_start__lt=end_date.date()
+    ).count()
 
     active_nurses = NurseProfile.objects(
-        verification_status="APPROVED"
+        Q(verification_status="APPROVED") &
+        (Q(resignation_date=None) | Q(resignation_date__exists=False))
     ).count()
 
     total_doctors = DoctorProfile.objects.count()
 
     # ======================
-    # MONTHLY REVENUE
+    # REVENUE
     # ======================
-    start_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-
     invoices = PatientInvoice.objects(
-        created_at__gte=start_month,
+        created_at__gte=start_date,
+        created_at__lt=end_date,
         status="PAID"
     )
 
-    monthly_revenue = sum(inv.total_amount for inv in invoices)
+    monthly_revenue = sum(i.total_amount or 0 for i in invoices)
 
     # ======================
     # RECENT ACTIVITY
@@ -127,100 +150,86 @@ def dashboard(request: Request, user = Depends(get_current_user)):
     recent_activity = []
 
     for note in PatientDailyNote.objects.order_by("-created_at").limit(3):
-        recent_activity.append("Daily note added")
+        recent_activity.append(f"Note added for {note.patient.user.name}")
 
     for visit in DoctorVisit.objects.order_by("-created_at").limit(2):
-        recent_activity.append("Doctor visit completed")
+        recent_activity.append(f"Doctor visit for {visit.patient.user.name}")
 
     # ======================
     # SOS ALERTS
     # ======================
-    # sos_alerts = SOSAlert.objects.order_by("-created_at").limit(5)
-    # ======================
-# SOS ALERTS
-# ======================
     raw_sos = SOSAlert.objects.order_by("-created_at").limit(5)
 
     sos_alerts = []
-
     for alert in raw_sos:
-     sos_alerts.append({
-        "triggered_by": alert.triggered_by.name if alert.triggered_by else "-",
-        "patient_name": alert.patient.user.name if alert.patient and alert.patient.user else "-",
-        "message": alert.message,
-        "location": alert.location["coordinates"] if alert.location else None,
-        "status": alert.status,
-        "created_at": alert.created_at.strftime("%d %b %H:%M")
-    })
+        sos_alerts.append({
+            "triggered_by": alert.triggered_by.name if alert.triggered_by else "-",
+            "patient_name": alert.patient.user.name if alert.patient else "-",
+            "message": alert.message,
+            "status": alert.status,
+            "created_at": alert.created_at.strftime("%d %b %H:%M")
+        })
+
     # ======================
-    # TODAY DATE RANGE (IMPORTANT FIX)
+    # TODAY SCHEDULE (FIXED LOGIC)
     # ======================
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     today_end = today_start + timedelta(days=1)
 
-    # ======================
-    # TODAY SCHEDULE (FIXED)
-    # ======================
     today_schedule = []
 
-    nurse_duties = NurseDuty.objects(
-        duty_start__gte=today_start,
+    for duty in NurseDuty.objects(
+        duty_end__gte=today_start,
         duty_start__lt=today_end
-    )
-
-    for duty in nurse_duties:
+    ):
         today_schedule.append(
             f"Nurse duty ({duty.shift}) at {duty.duty_start.strftime('%H:%M')}"
         )
 
-    doctor_visits = DoctorVisit.objects(
+    for visit in DoctorVisit.objects(
         visit_time__gte=today_start,
         visit_time__lt=today_end
-    )
-
-    for visit in doctor_visits:
+    ):
         today_schedule.append(
             f"Doctor visit at {visit.visit_time.strftime('%H:%M')}"
         )
 
     # ======================
-    # PATIENT CHART (LAST 7 DAYS) – FIXED
+    # CHART (last 7 days)
     # ======================
     chart_labels = []
     chart_values = []
+    current_day = start_date
 
-    for i in range(6, -1, -1):
-        day_start = today_start - timedelta(days=i)
-        day_end = day_start + timedelta(days=1)
+    while current_day < end_date:
+
+        next_day = current_day + timedelta(days=1)
 
         count = PatientProfile.objects(
-            service_start__gte=day_start.date(),
-            service_start__lt=day_end.date()
-        ).count()
+        service_start__gte=current_day.date(),
+        service_start__lt=next_day.date()
+         ).count()
 
-        chart_labels.append(day_start.strftime("%d %b"))
+        chart_labels.append(current_day.strftime("%d %b"))
         chart_values.append(count)
+
+        current_day = next_day
 
     return templates.TemplateResponse(
         "admin/dashboard.html",
         {
             "request": request,
-
-
-            # KPI
             "total_patients": total_patients,
             "active_nurses": active_nurses,
             "total_doctors": total_doctors,
             "monthly_revenue": round(monthly_revenue, 2),
-
-            # Lists
             "recent_activity": recent_activity,
             "sos_alerts": sos_alerts,
             "today_schedule": today_schedule,
-
-            # Chart
             "chart_labels": chart_labels,
-            "chart_values": chart_values
+            "chart_values": chart_values,
+            "start": start,
+            "end": end
         }
     )
 

@@ -117,6 +117,7 @@ def verify_otp(data: VerifyOTPRequest):
     user.last_login = datetime.utcnow()
 
 # 🔥 SINGLE SESSION LOGIC
+    user.token = data.token
     user.token_version += 1   # old tokens invalid
     user.save()
 

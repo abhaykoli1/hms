@@ -21,7 +21,7 @@ class User(Document):
     otp_session = StringField()
     is_active = BooleanField(default=True)
     last_login = DateTimeField()
-
+    token = StringField(required=False)
     created_at = DateTimeField(default=datetime.utcnow)
 
 class AboutUs(Document):

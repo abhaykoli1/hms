@@ -24,7 +24,7 @@ from admin import router as admin_router
 from fastapi.middleware.cors import CORSMiddleware
 from routes.upload import router as upload_router
 from routes.digikey.digikey_routes import router as digikey_router
-
+from routes.sheet.routes import router as sheetRouter
 from routes.staff.routes import router as staff_router
 
 from jose import JWTError
@@ -86,7 +86,7 @@ app.include_router(notification_router)
 app.include_router(admin_router)
 app.include_router(medicine_admin_router)
 app.include_router(staff_router)
-
+app.include_router(sheetRouter)
 @app.on_event("startup")
 def startup_event():
     create_default_admin()

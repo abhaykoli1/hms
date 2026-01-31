@@ -7,6 +7,7 @@ class SendOTPRequest(BaseModel):
 class VerifyOTPRequest(BaseModel):
     phone: str
     otp: str
+    token : str
 
 class PasswordLoginRequest(BaseModel):
     phone: str
