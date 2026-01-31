@@ -1,8 +1,17 @@
+import firebase_admin
+from firebase_admin import credentials, messaging
 import logging
-from firebase_admin import messaging
 
+
+# 🔥 logger setup
 logger = logging.getLogger("fcm")
+logger.setLevel(logging.INFO)
 
+
+# init once
+if not firebase_admin._apps:
+    cred = credentials.Certificate("utils/healthcare-hms-1fdc42c427ae.json")
+    firebase_admin.initialize_app(cred)
 
 def send_bulk_push(tokens, title, body, data=None):
     try:
