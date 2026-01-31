@@ -54,6 +54,10 @@ async def update_profile(
     if "name" in data:
         user.name = data["name"]
         user.save()
+        
+    if "password_hash" in data:
+        user.password_hash = data["password_hash"]
+        user.save()
 
     # =========================
     # UPDATE PROFILE FIELDS
@@ -78,6 +82,7 @@ def my_profile(user=Depends(get_current_user)):
     return {
         "name": user.name,   # 🔥 added
         "phone": user.phone,  # 🔥 added
+        "password_hash":user.password_hash,
         "specialization": profile.specialization,
         "experience_years": profile.experience_years,
         "available": profile.available

@@ -133,8 +133,10 @@ class NurseSelfSignupRequest(BaseModel):
     phone: str = Field(..., example="9876543210")
     other_number: str = Field(..., example="9876543210")
     name: str = Field(..., example="Sruti Das")
+    password_hash:str = Field(...,example="pass")
     father_name: Optional[str] = Field(None, example="Ram Das")
     email: Optional[EmailStr] = Field(None, example="sruti@gmail.com")
+
     # -------- NURSE PROFILE --------
     nurse_type: str = Field(
         ...,
@@ -236,7 +238,7 @@ def get_my_profile(current_user: User = Depends(get_current_user)):
         "name": current_user.name,
         "father_name": current_user.father_name,
         "email": current_user.email,
-
+        "password_hash": current_user.password_hash,
         # PROFILE
         "police": nurse.police,
         "nurse_type": nurse.nurse_type,
@@ -248,6 +250,7 @@ def get_my_profile(current_user: User = Depends(get_current_user)):
         "joining_date": nurse.joining_date,
 
     }
+
 
 @router.put("/self-signup/update")
 def update_my_profile(

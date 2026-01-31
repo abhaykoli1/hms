@@ -579,6 +579,7 @@ def serialize_patient(patient):
         "father_name": user.father_name,
         "phone": user.phone,
         "other_number": user.other_number,
+        "password_hash":user.password_hash,
         "email": user.email,
 
         # PATIENT FIELDS
@@ -654,6 +655,7 @@ class PatientProfileUpdate(BaseModel):
     phone: str
     other_number: str
     email: EmailStr
+    password_hash : str
 
     age: int
     gender: str
@@ -680,6 +682,7 @@ def update_patient_profile(
     user.phone = payload.phone
     user.other_number = payload.other_number
     user.email = payload.email
+    user.password_hash = payload.password_hash
     user.save()
 
     # PATIENT

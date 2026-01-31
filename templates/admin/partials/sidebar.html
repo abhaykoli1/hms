@@ -4,38 +4,36 @@
   class="w-72 fixed bg-gradient-to-b from-sky-100 to-white top-0 left-0 bottom-0 overflow-y-auto min-h-screen bg-sidebar flex flex-col p-3 py-6"
 >
   <!-- Logo -->
-  <div class="flex items-center justify-center gap-2 mb-6">
-    <!-- <span class="text-2xl">+</span> -->
-    <!-- <h1 class="text-lg font-semibold text-gray-700">
-      We Cares <span class="font-bold">Admin</span>
-    </h1> -->
 
+  <div
+    class="flex items-center justify-center gap-2 w-72 bg-sky-100 fixed -top-0 left-0 py-1 overflow-x-hidden"
+  >
     <img
       src="{{ request.url_for('media', path='logos/wecare_header.png') }}"
-      class="h-24 fixed top-1.5"
+      class="h-24"
     />
-    <!-- <div class="flex font-semibold text-xl gap-1">
-      <span>Admin</span>
-      <span>Panel</span>
-    </div> -->
   </div>
 
   <!-- Menu -->
-  <nav class="space-y-1 mt-16 text-sm font-medium">
+  <nav class="space-y-1 mt-28 text-sm font-medium">
     {% if role == "ADMIN" %}
     <!-- Dashboard -->
     <a
       href="/admin/dashboard"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/dashboard' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">📊 <span>Dashboard</span></div>
+      <div class="flex items-center gap-3 text-lg">
+        📊 <span class="text-[15px]">Dashboard</span>
+      </div>
       <span class="text-gray-300">›</span>
     </a>
     <a
       href="/admin/about"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/about' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">ℹ️ <span>About Us</span></div>
+      <div class="flex items-center gap-3 text-lg">
+        ℹ️ <span class="text-[15px]">About Us</span>
+      </div>
       <span class="text-gray-300">›</span>
     </a>
 
@@ -44,8 +42,10 @@
       href="/admin/nurses"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/nurses' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">👩‍⚕️ Nurses</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        👩‍⚕️ <span class="text-[15px]"> Nurses </span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
 
     <!-- Self Registered Nurses -->
@@ -53,23 +53,29 @@
       href="/admin/nurses/self"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/nurses/self' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">🧾 Self Registered</div>
-      <span>›</span>
-    </a>
-    <a
-      href="/admin/request-equipment"
-      class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/request-equipment' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
-    >
-      <div class="flex items-center gap-3">🧾 Equipment requests</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        🧾 <span class="text-[15px]">Self Registered</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
     <!-- Equipment -->
     <a
       href="/admin/equipment"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path.startswith('/admin/equipment') %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">🛠️ Equipment</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        🛠️ <span class="text-[15px]">Equipment</span>
+      </div>
+      <span class="text-lg">›</span>
+    </a>
+    <a
+      href="/admin/request-equipment"
+      class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/request-equipment' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
+    >
+      <div class="flex items-center gap-3 text-lg">
+        🧾 <span class="text-[15px]">Equipment requests</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
 
     <!-- Doctors -->
@@ -77,8 +83,10 @@
       href="/admin/doctors"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/doctors' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">👨‍⚕️ Doctors</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        👨‍⚕️ <span class="text-[15px]">Doctors</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
 
     <!-- Patients -->
@@ -86,8 +94,10 @@
       href="/admin/patients"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/patients' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">🧑‍🦽 Patients</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        🧑‍🦽 <span class="text-[15px]">Patients</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
 
     <!-- Staff -->
@@ -95,8 +105,10 @@
       href="/admin/staff/manage"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path.startswith('/admin/staff/manage') %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">👷 Staff</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        👷 <span class="text-[15px]">Staff</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
 
     <!-- Medicines -->
@@ -104,8 +116,10 @@
       href="/admin/medicine"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/medicine' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">💊 Medicines</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        💊 <span class="text-[15px]">Medicines</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
 
     <!-- SOS -->
@@ -113,8 +127,10 @@
       href="/admin/sos"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/sos' %} bg-red-50 text-red-500 shadow-sm {% else %} text-gray-500 hover:bg-red-50 hover:text-red-500 {% endif %}"
     >
-      <div class="flex items-center gap-3">🚨 SOS</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        🚨 <span class="text-[15px]">SOS</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
 
     <!-- Complaints -->
@@ -122,8 +138,10 @@
       href="/admin/complaints"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/complaints' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">📝 Complaints</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        📝 <span class="text-[15px]">Complaints</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
 
     <!-- Notifications -->
@@ -131,8 +149,10 @@
       href="/admin/notifications"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/notifications' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">🔔 Notifications</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        🔔 <span class="text-[15px]">Notifications</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
     {% endif %} {% if role == "NURSE" %}
 
@@ -141,8 +161,10 @@
       href="/admin/nurses"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/nurses' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">👩‍⚕️ Nurses</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        👩‍⚕️ <span class="text-[15px]">Nurses</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
 
     <!-- Self Registered Nurses -->
@@ -150,16 +172,20 @@
       href="/admin/nurses/self"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/nurses/self' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">🧾 Self Registered</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        🧾 <span class="text-[15px]">Self Registered</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
     <!-- Patients -->
     <a
       href="/admin/patients"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/patients' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">🧑‍🦽 Patients</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        🧑‍🦽 <span class="text-[15px]">Patients</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
     {% endif %}
     <!--  -->
@@ -170,24 +196,30 @@
       href="/admin/doctors"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/doctors' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">👨‍⚕️ Doctors</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        👨‍⚕️ <span class="text-[15px]">Doctors</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
 
     <a
       href="/admin/medicine"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/medicine' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">💊 Medicines</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        💊 <span class="text-[15px]">Medicines</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
     <!-- Patients -->
     <a
       href="/admin/patients"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/patients' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">🧑‍🦽 Patients</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        🧑‍🦽 <span class="text-[15px]">Patients</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
 
     {% endif %}
@@ -198,8 +230,10 @@
       href="/admin/patients"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/patients' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
-      <div class="flex items-center gap-3">🧑‍🦽 Patients</div>
-      <span>›</span>
+      <div class="flex items-center gap-3 text-lg">
+        🧑‍🦽 <span class="text-[15px]">Patients</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
 
     {% if not role %}
@@ -207,7 +241,7 @@
     {% endif %} {% endif %}
   </nav>
 
-  <div class="mt-10">
+  <div class="mt-3">
     <!-- Footer -->
     <div>
       <a
