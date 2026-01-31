@@ -1,19 +1,26 @@
 import firebase_admin
 from firebase_admin import credentials, messaging
 import logging
-# init once only
+
+
+# 🔥 logger setup
+logger = logging.getLogger("fcm")
+logger.setLevel(logging.INFO)
+
+
+# init once
 if not firebase_admin._apps:
     cred = credentials.Certificate("utils/healthcare-hms-1fdc42c427ae.json")
     firebase_admin.initialize_app(cred)
-
-logger = logging.getLogger("fcm")
 
 
 def send_bulk_push(tokens, title, body, data=None):
     try:
         if not tokens:
-            print("⚠️ No tokens")
-            return
+            logger.warning("⚠️ No tokens provided for push notification")
+            return None
+
+        logger.info(f"🚀 Sending push to {len(tokens)} users")
 
         messages = [
             messaging.Message(
@@ -29,17 +36,22 @@ def send_bulk_push(tokens, title, body, data=None):
 
         response = messaging.send_all(messages)
 
-        print("✅ Success:", response.success_count)
-        print("❌ Failed:", response.failure_count)
+        # ✅ summary logs
+        logger.info(f"✅ Success count: {response.success_count}")
+        logger.warning(f"❌ Failure count: {response.failure_count}")
 
+        # 🔥 per token logs
         for idx, resp in enumerate(response.responses):
+            token = tokens[idx]
+
             if resp.success:
-                print(f"✔ Sent: {tokens[idx]}")
+                logger.info(f"✔ Sent → {token}")
             else:
-                print(f"❌ Failed: {tokens[idx]} | {resp.exception}")
+                logger.error(f"❌ Failed → {token} | Error: {resp.exception}")
 
         return response
 
-    except Exception as e:
-        print("🔥 FCM bulk push crashed:", e)
+    except Exception:
+        # 🔥 full stacktrace automatically logs
+        logger.exception("🔥 FCM bulk push crashed")
         return None
