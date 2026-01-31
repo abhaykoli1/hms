@@ -9,41 +9,37 @@ if not firebase_admin._apps:
 logger = logging.getLogger("fcm")
 
 
-def send_bulk_push(tokens: list[str], title: str, body: str, data: dict | None = None):
-
+def send_bulk_push(tokens, title, body, data=None):
     try:
         if not tokens:
-            logger.warning("⚠️ No tokens provided for push notification")
+            print("⚠️ No tokens")
             return
 
-        logger.info(f"🚀 Sending push to {len(tokens)} users")
+        messages = [
+            messaging.Message(
+                token=token,
+                notification=messaging.Notification(
+                    title=title,
+                    body=body,
+                ),
+                data=data or {}
+            )
+            for token in tokens
+        ]
 
-        message = messaging.MulticastMessage(
-            tokens=tokens,
-            notification=messaging.Notification(
-                title=title,
-                body=body,
-            ),
-            data=data or {}
-        )
+        response = messaging.send_all(messages)
 
-        response = messaging.send_multicast(message)
+        print("✅ Success:", response.success_count)
+        print("❌ Failed:", response.failure_count)
 
-        # ✅ summary logs
-        logger.info(f"✅ Success count: {response.success_count}")
-        logger.info(f"❌ Failure count: {response.failure_count}")
-
-        # 🔥 per token result
         for idx, resp in enumerate(response.responses):
             if resp.success:
-                logger.info(f"✔ Token success: {tokens[idx]}")
+                print(f"✔ Sent: {tokens[idx]}")
             else:
-                logger.error(
-                    f"❌ Token failed: {tokens[idx]} | Error: {resp.exception}"
-                )
+                print(f"❌ Failed: {tokens[idx]} | {resp.exception}")
 
         return response
 
     except Exception as e:
-        logger.exception(f"🔥 FCM bulk push crashed: {str(e)}")
+        print("🔥 FCM bulk push crashed:", e)
         return None
