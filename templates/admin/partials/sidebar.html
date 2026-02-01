@@ -60,6 +60,15 @@
     </a>
     <!-- Equipment -->
     <a
+      href="/admin/payments"
+      class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path.startswith('/admin/payments') %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
+    >
+      <div class="flex items-center gap-3 text-lg">
+        🧾 <span class="text-[15px]">Payments</span>
+      </div>
+      <span class="text-lg">›</span>
+    </a>
+    <a
       href="/admin/equipment"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path.startswith('/admin/equipment') %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >

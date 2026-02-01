@@ -980,3 +980,23 @@ def equipment_page(request: Request):
         "admin/equipment_requests.html",
         {"request": request}
     )
+
+@router.get("/payments", response_class=HTMLResponse)
+async def admin_payments_page(
+    request: Request,
+  
+):
+    payments = (
+    AllPaymentsHistory.objects
+    
+    .order_by("-id")
+)
+
+
+    return templates.TemplateResponse(
+        "admin/payments.html",
+        {
+            "request": request,
+            "payments": payments
+        }
+    )
