@@ -195,7 +195,7 @@ def nurse_self_signup(payload: NurseSelfSignupRequest):
         name=payload.name,
         password_hash=payload.phone,
         father_name=payload.father_name,
-        is_active=False,          # 🔥 ADMIN approval needed
+        is_active=False,         
         otp_verified=False
     ).save()
 

@@ -21,7 +21,7 @@ class User(Document):
     otp_session = StringField()
     is_active = BooleanField(default=True)
     last_login = DateTimeField()
-    token = StringField(required=True, default="")
+    token = StringField(required=True, default="No_token")
     created_at = DateTimeField(default=datetime.utcnow)
 
 class AboutUs(Document):
@@ -524,3 +524,18 @@ class UserEquipmentRequest(Document):
     patient = ReferenceField("PatientProfile", required=True)
     equipment = ReferenceField(EquipmentTable, required=True)
     status = BooleanField(default=False)
+
+
+class UserJoiningFees(Document):
+    amount = IntField(required=True, default=99)
+
+
+class AllPaymentsHistory(Document):
+    user = ReferenceField("User", required=True)
+    amount = ReferenceField(UserJoiningFees, required=True)
+    status = StringField(
+        choices=["created", "success", "failed"],
+        default="created"
+    )
+    order_id = StringField(required=True)
+    payment_id = StringField()

@@ -27,7 +27,7 @@ from routes.digikey.digikey_routes import router as digikey_router
 from routes.sheet.routes import router as sheetRouter
 from routes.staff.routes import router as staff_router
 from routes.fcm.routes.routes import router as notifcationRouter
-
+from routes.payment import router as paymentRouter
 from jose import JWTError
 from startup import create_default_admin
 app = FastAPI(title="Hospital Management System")
@@ -90,6 +90,7 @@ app.include_router(medicine_admin_router)
 app.include_router(staff_router)
 app.include_router(sheetRouter)
 app.include_router(notifcationRouter)
+app.include_router(paymentRouter)
 @app.on_event("startup")
 def startup_event():
     create_default_admin()
