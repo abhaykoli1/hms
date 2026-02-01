@@ -89,3 +89,14 @@ def payment_status(order_id: str):
     return {
         "status": payment.status
     }
+
+
+class PriceJoiningAdd(BaseModel):
+    amount: int
+@router.post("/price-joinig-add")
+def price_joiningAdd(body: PriceJoiningAdd):
+    data = UserJoiningFees(amount = body.amount)
+    data.save()
+    return {
+        "status": "ok"
+    }

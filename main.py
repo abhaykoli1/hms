@@ -47,24 +47,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+PUBLIC_PREFIXES = (
+    "/payments",
+    "/docs",
+    "/openapi.json"
+)
 
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("uploads/documents", exist_ok=True)
 
 @app.middleware("http")
 async def admin_auth_guard(request: Request, call_next):
-
     path = request.url.path
 
-    if path.startswith("/admin") and path not in ["/admin/login"]:
-        try: 
+    # 🔥 PUBLIC ROUTES → NO AUTH, NO COOKIE, NO REDIRECT
+    if path.startswith(PUBLIC_PREFIXES):
+        return await call_next(request)
+
+    # 🔒 ADMIN ROUTES ONLY
+    if path.startswith("/admin") and path != "/admin/login":
+        try:
             user = get_current_user_from_cookie(request)
             request.state.user = user
-        except:
+        except Exception as e:
+            print("Admin auth error:", e)
             return RedirectResponse("/admin/login")
 
     return await call_next(request)
-
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/media", StaticFiles(directory="media"), name="media")
