@@ -1,5 +1,5 @@
 from fastapi import APIRouter,HTTPException,  Request, Header
-from models import UserJoiningFees, AllPaymentsHistory, User
+from models import NurseProfile, UserJoiningFees, AllPaymentsHistory, User
 from utils.razorpay_client import client
 from pydantic import BaseModel
 import os
@@ -12,7 +12,7 @@ class CreateOrderRequest(BaseModel):
 
 @router.post("/create-order")
 def create_order(body: CreateOrderRequest):
-    user = User.objects.get(id=body.userId)
+    user = NurseProfile.objects.get(id=body.userId)
     joining_fee = UserJoiningFees.objects.first()
 
     order = client.order.create({
@@ -23,7 +23,7 @@ def create_order(body: CreateOrderRequest):
 
     # 🔥 VERY IMPORTANT: Save order as CREATED
     AllPaymentsHistory(
-        user=user,
+        user=user.user,
         amount=joining_fee,
         status="created",
         order_id=order["id"]
