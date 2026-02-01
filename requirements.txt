@@ -97,6 +97,7 @@ python-jose==3.5.0
 python-multipart==0.0.21
 PyYAML==6.0.3
 qrcode==8.0
+razorpay==2.0.0
 reportlab==4.4.7
 requests==2.32.4
 rich==13.9.4
