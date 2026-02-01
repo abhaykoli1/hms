@@ -51,7 +51,7 @@ def create_order( user=Depends(get_current_user)):
 
     # 🔥 VERY IMPORTANT: Save order as CREATED
     AllPaymentsHistory(
-        user=user.user,
+        user=user,
         amount=joining_fee,
         status="created",
         order_id=order["id"]
