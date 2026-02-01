@@ -1,9 +1,10 @@
-from fastapi import APIRouter,HTTPException,  Request, Header
+from fastapi import APIRouter,HTTPException, Depends ,Request, Header
 from models import NurseProfile, UserJoiningFees, AllPaymentsHistory, User
 from utils.razorpay_client import client
 from pydantic import BaseModel
 import os
 import hashlib, hmac, json, os
+from core.dependencies import get_current_user
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -33,8 +34,49 @@ def create_order(body: CreateOrderRequest):
         "order_id": order["id"],
         "amount": order["amount"],
         "currency": "INR",
-        "key": "rzp_live_SAvvEOWMG4hVKT"
+        "key": "rzp_test_SAwN0AJIvEBZt1"
     }
+
+
+@router.post("/create-order-pataint")
+def create_order( user=Depends(get_current_user)):
+   
+    joining_fee = UserJoiningFees.objects.first()
+
+    order = client.order.create({
+        "amount": joining_fee.amount * 100,
+        "currency": "INR",
+        "payment_capture": 1
+    })
+
+    # 🔥 VERY IMPORTANT: Save order as CREATED
+    AllPaymentsHistory(
+        user=user.user,
+        amount=joining_fee,
+        status="created",
+        order_id=order["id"]
+    ).save()
+
+    return {
+        "order_id": order["id"],
+        "amount": order["amount"],
+        "currency": "INR",
+        "key": "rzp_test_SAwN0AJIvEBZt1"
+    }
+
+
+@router.get("/get-pataint-trnx")
+def get_Pataint_trns(user=Depends(get_current_user)):
+    findTrnx = AllPaymentsHistory.objects(user=user).first()
+    if findTrnx :
+        return {
+            "status": True
+        }
+    
+    return {
+        "status": False
+    }
+
 
 @router.post("/webhook")
 async def razorpay_webhook(

@@ -539,3 +539,4 @@ class AllPaymentsHistory(Document):
     )
     order_id = StringField(required=True)
     payment_id = StringField()
+
