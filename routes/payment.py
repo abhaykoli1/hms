@@ -33,7 +33,7 @@ def create_order(body: CreateOrderRequest):
         "order_id": order["id"],
         "amount": order["amount"],
         "currency": "INR",
-        "key": os.getenv("RAZORPAY_KEY_ID")
+        "key": "rzp_live_SAvvEOWMG4hVKT"
     }
 
 @router.post("/webhook")
@@ -78,3 +78,14 @@ async def razorpay_webhook(
         )
 
     return {"status": "ok"}
+
+@router.get("/status/{order_id}")
+def payment_status(order_id: str):
+    payment = AllPaymentsHistory.objects(order_id=order_id).first()
+
+    if not payment:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    return {
+        "status": payment.status
+    }
