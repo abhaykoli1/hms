@@ -90,57 +90,73 @@ def dashboard(
     request: Request,
     start: str | None = None,
     end: str | None = None,
+    hospital_id: str | None = None,
     user = Depends(get_current_user)
 ):
-
     # ======================
     # ROLE REDIRECTS
     # ======================
     if user.role == "NURSE":
         return RedirectResponse("/admin/nurses")
-
     if user.role == "DOCTOR":
         return RedirectResponse("/admin/doctors")
-
     if user.role == "PATIENT":
         return RedirectResponse("/admin/patients")
 
     now = datetime.now()
 
     # ======================
-    # DATE RANGE FILTER
+    # DATE RANGE
     # ======================
     if start and end:
         start_date = datetime.strptime(start, "%Y-%m-%d")
         end_date = datetime.strptime(end, "%Y-%m-%d") + timedelta(days=1)
     else:
-        # default → current month
         start_date = now.replace(day=1, hour=0, minute=0, second=0)
         end_date = now + timedelta(days=1)
+
+    # ======================
+    # HOSPITAL → USERS
+    # ======================
+    user_filter = {}
+
+    if hospital_id:
+        hospital_users = User.objects(
+            hospital=hospital_id
+        ).only("id")
+
+        user_filter["user__in"] = hospital_users
+
+    # ======================
+    # DROPDOWN DATA
+    # ======================
+    hospitals = HospitalModel.objects.only("id", "name", "branch")
 
     # ======================
     # KPI
     # ======================
     total_patients = PatientProfile.objects(
         service_start__gte=start_date.date(),
-        service_start__lt=end_date.date()
+        service_start__lt=end_date.date(),
+        **user_filter
     ).count()
 
-    active_nurses = NurseProfile.objects(
-        Q(verification_status="APPROVED") &
-        (Q(resignation_date=None) | Q(resignation_date__exists=False))
+    total_nurses = NurseProfile.objects(
+        **user_filter
     ).count()
 
-    total_doctors = DoctorProfile.objects.count()
+    total_doctors = DoctorProfile.objects(
+        **user_filter
+    ).count()
 
     # ======================
-    # REVENUE
+    # REVENUE (SAFE VERSION)
     # ======================
     invoices = PatientInvoice.objects(
         created_at__gte=start_date,
         created_at__lt=end_date,
         status="PAID"
-    )
+    ).only("total_amount")
 
     monthly_revenue = sum(i.total_amount or 0 for i in invoices)
 
@@ -149,29 +165,38 @@ def dashboard(
     # ======================
     recent_activity = []
 
-    for note in PatientDailyNote.objects.order_by("-created_at").limit(3):
-        recent_activity.append(f"Note added for {note.patient.user.name}")
+    for note in PatientDailyNote.objects.order_by("-created_at").limit(3).select_related():
+        if not hospital_id or note.patient.user in hospital_users:
+            recent_activity.append(
+                f"Note added for {note.patient.user.name}"
+            )
 
-    for visit in DoctorVisit.objects.order_by("-created_at").limit(2):
-        recent_activity.append(f"Doctor visit for {visit.patient.user.name}")
+    for visit in DoctorVisit.objects.order_by("-created_at").limit(2).select_related():
+        if not hospital_id or visit.patient.user in hospital_users:
+            recent_activity.append(
+                f"Doctor visit for {visit.patient.user.name}"
+            )
 
     # ======================
     # SOS ALERTS
     # ======================
-    raw_sos = SOSAlert.objects.order_by("-created_at").limit(5)
-
     sos_alerts = []
-    for alert in raw_sos:
+
+    for alert in SOSAlert.objects.order_by("-created_at").limit(5).select_related():
+        if hospital_id and alert.patient and alert.patient.user not in hospital_users:
+            continue
+
         sos_alerts.append({
             "triggered_by": alert.triggered_by.name if alert.triggered_by else "-",
             "patient_name": alert.patient.user.name if alert.patient else "-",
             "message": alert.message,
             "status": alert.status,
-            "created_at": alert.created_at.strftime("%d %b %H:%M")
+            "created_at": alert.created_at.strftime("%d %b %H:%M"),
+            "location": alert.location
         })
 
     # ======================
-    # TODAY SCHEDULE (FIXED LOGIC)
+    # TODAY SCHEDULE
     # ======================
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     today_end = today_start + timedelta(days=1)
@@ -181,46 +206,52 @@ def dashboard(
     for duty in NurseDuty.objects(
         duty_end__gte=today_start,
         duty_start__lt=today_end
-    ):
-        today_schedule.append(
-            f"Nurse duty ({duty.shift}) at {duty.duty_start.strftime('%H:%M')}"
-        )
+    ).select_related():
+        if not hospital_id or duty.nurse.user in hospital_users:
+            today_schedule.append(
+                f"Nurse duty ({duty.shift}) at {duty.duty_start.strftime('%H:%M')}"
+            )
 
     for visit in DoctorVisit.objects(
         visit_time__gte=today_start,
         visit_time__lt=today_end
-    ):
-        today_schedule.append(
-            f"Doctor visit at {visit.visit_time.strftime('%H:%M')}"
-        )
+    ).select_related():
+        if not hospital_id or visit.patient.user in hospital_users:
+            today_schedule.append(
+                f"Doctor visit at {visit.visit_time.strftime('%H:%M')}"
+            )
 
     # ======================
-    # CHART (last 7 days)
+    # CHART DATA
     # ======================
     chart_labels = []
     chart_values = []
+
     current_day = start_date
-
     while current_day < end_date:
-
         next_day = current_day + timedelta(days=1)
 
         count = PatientProfile.objects(
-        service_start__gte=current_day.date(),
-        service_start__lt=next_day.date()
-         ).count()
+            service_start__gte=current_day.date(),
+            service_start__lt=next_day.date(),
+            **user_filter
+        ).count()
 
         chart_labels.append(current_day.strftime("%d %b"))
         chart_values.append(count)
-
         current_day = next_day
 
+    # ======================
+    # RESPONSE
+    # ======================
     return templates.TemplateResponse(
         "admin/dashboard.html",
         {
             "request": request,
+            "hospitals": hospitals,
+            "selected_hospital": hospital_id,
             "total_patients": total_patients,
-            "active_nurses": active_nurses,
+            "active_nurses": total_nurses,
             "total_doctors": total_doctors,
             "monthly_revenue": round(monthly_revenue, 2),
             "recent_activity": recent_activity,
@@ -232,8 +263,6 @@ def dashboard(
             "end": end
         }
     )
-
-
 
 @router.get("/nurse-dashboard", response_class=HTMLResponse)
 def nurse_dashboard(
@@ -268,12 +297,14 @@ def create_nurse(request: Request):
 def create_patient_page(request: Request):
 
     doctors = DoctorProfile.objects(available=True)
+    hospitals = HospitalModel.objects.all()
 
     return templates.TemplateResponse(
         "admin/add_pataint.html",
         {
             "request": request,
-            "doctors": doctors
+            "doctors": doctors,
+            "hospitals": hospitals,
         }
     )
 # -------------------------
@@ -693,7 +724,7 @@ def edit_nurse(nurse_id: str, request: Request):
     duties = NurseDuty.objects(nurse=nurse, is_active=True).order_by("-duty_start")
     visits = NurseVisit.objects(nurse=nurse).order_by("-visit_time")[:10]
     consent = NurseConsent.objects(nurse=nurse).order_by("-created_at").first()
-
+    hospitals = HospitalModel.objects.all()
     return templates.TemplateResponse(
         "admin/nurse_edit.html",
         {
@@ -702,9 +733,13 @@ def edit_nurse(nurse_id: str, request: Request):
             "patients": patients,
             "duties": duties,
             "visits": visits,
-            "consent": consent
+            "consent": consent,
+            "hospitals": hospitals,
+
         }
     )
+
+
 @router.get("/create/doctor", response_class=HTMLResponse)
 def doctor_create_page(request: Request):
     return templates.TemplateResponse(
@@ -755,14 +790,18 @@ def doctor_edit_page(doctor_id: str, request: Request):
     if not doctor:
         raise HTTPException(404, "Doctor not found")
 
+    hospitals = HospitalModel.objects.all()
     return templates.TemplateResponse(
         "admin/doctor_edit.html",
         {
             "request": request,
             "doctor": doctor,
+            "hospitals": hospitals,
             "user": doctor.user
+
         }
     )
+
 
 
 @router.get("/patient/{patient_id}/care", response_class=HTMLResponse)
@@ -964,6 +1003,13 @@ def staff_manage_page(request: Request):
             "request": request,
             "staff": staff
         }
+    )
+
+@router.get("/hospital", response_class=HTMLResponse)
+def hospital_page(request: Request):
+    return templates.TemplateResponse(
+        "admin/hospitals.html",
+        {"request": request}
     )
 
 

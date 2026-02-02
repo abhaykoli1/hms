@@ -2,7 +2,7 @@ import os
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from datetime import date, datetime
 from core.dependencies import admin_required, get_current_user
-from models import NurseProfile, NurseDuty, NurseSalary, NurseConsent, NurseVisit, PatientProfile
+from models import HospitalModel, NurseProfile, NurseDuty, NurseSalary, NurseConsent, NurseVisit, PatientProfile
 from routes.auth.schemas import NurseVisitCreate, SignatureUpdateSchema
 from bson import ObjectId
 import smtplib
@@ -222,7 +222,8 @@ def update_nurse_admin(
     salary_amount: float = Form(...),
     payment_mode: str = Form(...),
     salary_date: int = Form(...),
-    digital_signature_verify: bool = Form(False)
+    digital_signature_verify: bool = Form(False),
+    hospital: str | None = Form(None)
 ):  
     
     nurse = NurseProfile.objects(id=nurse_id).first()
@@ -255,6 +256,7 @@ def update_nurse_admin(
     # ✅ user active fix
     if nurse.user:
         nurse.user.is_active = is_active == "true"
+        nurse.user.hospital = HospitalModel.objects.get(id=ObjectId(hospital))
         nurse.user.save()
 
     # ✅ consent FIX (no hardcoded status)

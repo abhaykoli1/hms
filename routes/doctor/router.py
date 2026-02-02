@@ -48,7 +48,7 @@ async def update_profile(
     if not profile:
         raise HTTPException(404, "Profile not found")
 
-    # =========================
+    # =========================p
     # UPDATE USER NAME
     # =========================
     if "name" in data:
@@ -57,6 +57,9 @@ async def update_profile(
         
     if "password_hash" in data:
         user.password_hash = data["password_hash"]
+        user.save()
+    if "hospital" in data:
+        user.hospital = data["hospital"]
         user.save()
 
     # =========================

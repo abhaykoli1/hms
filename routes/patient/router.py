@@ -6,7 +6,7 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException
 from core.dependencies import get_current_user
 from models import (
-    EquipmentTable, Medicine, NurseDuty, NurseProfile, PatientProfile, PatientDailyNote,
+    EquipmentTable, HospitalModel, Medicine, NurseDuty, NurseProfile, PatientProfile, PatientDailyNote,
     PatientVitals, PatientMedication, RelativeAccess, User, UserEquipmentRequest
 )
 from datetime import datetime
@@ -28,6 +28,7 @@ def create_patient(payload: dict):
             password_hash=payload["phone"],
             other_number=payload.get("other_number"),
             email=payload.get("email"),
+            hospital=HospitalModel.objects.get(id=ObjectId(payload.get("hospital")))
         ).save()
 
         patient = PatientProfile(

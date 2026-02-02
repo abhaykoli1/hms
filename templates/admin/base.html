@@ -20,6 +20,7 @@
 
     <!-- SIDEBAR -->
     {% include "admin/partials/sidebar.html" %}
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- MAIN -->
     <div class="main">
@@ -42,6 +43,10 @@
 
       <!-- PAGE CONTENT -->
       {% block content %}{% endblock %}
+
+      <script>
+        lucide.createIcons();
+      </script>
     </div>
     <script src="https://cdn.tailwindcss.com"></script>
 

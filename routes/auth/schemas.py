@@ -95,3 +95,12 @@ class EquipmentResponse(BaseModel):
     id: str
     title: str
     image: str
+
+class HospitalCreate(BaseModel):
+    name: str
+    address: str
+    branch: str
+
+
+class HospitalResponse(HospitalCreate):
+    id: str

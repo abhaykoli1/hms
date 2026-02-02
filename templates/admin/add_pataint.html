@@ -31,7 +31,7 @@ block content %}
     </div>
 
     <div class="col-md-4">
-      <label class="form-label">Alternate / Emergency Number</label>
+      <label class="form-label">Emergency Number</label>
       <input id="other_number" class="form-control" />
     </div>
 
@@ -100,6 +100,18 @@ block content %}
   <!-- ================= SERVICE DETAILS ================= -->
   <h5 class="mb-3 text-md font-semibold underline">Service Details:</h5>
   <div class="row g-3 mb-4">
+    <!-- Hospital -->
+    <div class="col-md-4">
+      <label class="form-label">Hospital</label>
+      <select id="hospital" class="form-select">
+        <option value="">Select Hospital</option>
+        {% for h in hospitals %}
+        <option value="{{ h.id }}">{{ h.name }} ({{ h.branch }})</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Doctor -->
     <div class="col-md-4">
       <label class="form-label">Assign Doctor</label>
       <select id="doctor" class="form-select">
@@ -218,6 +230,7 @@ block content %}
       address: document.getElementById("address").value.trim() || null,
       service_start: document.getElementById("service_start").value || null,
       service_end: document.getElementById("service_end").value || null,
+      hospital: document.getElementById("hospital").value || null,
       assigned_doctor: document.getElementById("doctor").value || null,
 
       // 🔥 documents

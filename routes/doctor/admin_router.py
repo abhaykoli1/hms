@@ -3,8 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.params import Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from core.dependencies import admin_required
-from models import DoctorProfile, DoctorVisit, PatientProfile, User
-
+from models import DoctorProfile, DoctorVisit, HospitalModel, PatientProfile, User
+from bson import ObjectId
 router = APIRouter(prefix="/admin/doctor", tags=["Admin-Doctor"])
 
 @router.post("/approve")
@@ -76,7 +76,8 @@ def update_doctor(
     specialization: str = Form(...),
     registration_number: str = Form(...),
     experience_years: int = Form(...),
-    available: bool = Form(...)
+    available: bool = Form(...),
+    hospital: str = Form(...),
 ):
     doctor = DoctorProfile.objects(id=doctor_id).first()
     if not doctor:
@@ -87,7 +88,10 @@ def update_doctor(
         set__registration_number=registration_number,
         set__experience_years=experience_years,
         set__available=available
+
     )
+    doctor.user.hospital = HospitalModel.objects.get(id=ObjectId(hospital))
+    doctor.user.save()
 
     return RedirectResponse(
         url=f"/admin/doctors/{doctor_id}",

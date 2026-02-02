@@ -152,6 +152,8 @@ class NurseSelfSignupRequest(BaseModel):
     profile_photo: Optional[str] = None
     digital_signature: Optional[str] = None
     joining_date: Optional[date] = None
+   
+
 
 
 
@@ -267,6 +269,7 @@ def update_my_profile(
         set__name=payload.name,
         set__father_name=payload.father_name,
         set__email=payload.email,
+      
     )
 
     # 🔹 update nurse

@@ -23,18 +23,30 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/dashboard' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        📊 <span class="text-[15px]">Dashboard</span>
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+        <span class="text-[15px]">Dashboard</span>
       </div>
-      <span class="text-gray-300">›</span>
+      <span class="text-lg">›</span>
+    </a>
+    <a
+      href="/admin/hospital"
+      class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/hospital' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
+    >
+      <div class="flex items-center gap-3 text-lg">
+        <i data-lucide="hospital" class="w-5 h-5"></i>
+        <span class="text-[15px]">Hospital</span>
+      </div>
+      <span class="text-lg">›</span>
     </a>
     <a
       href="/admin/about"
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/about' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        ℹ️ <span class="text-[15px]">About Us</span>
+        <i data-lucide="info" class="w-5 h-5"></i
+        ><span class="text-[15px]">About Us</span>
       </div>
-      <span class="text-gray-300">›</span>
+      <span class="text-lg">›</span>
     </a>
 
     <!-- Nurses -->
@@ -43,7 +55,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/nurses' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        👩‍⚕️ <span class="text-[15px]"> Nurses </span>
+        <i data-lucide="stethoscope" class="w-5 h-5"></i>
+        <span class="text-[15px]"> Nurses </span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -54,7 +67,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/nurses/self' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        🧾 <span class="text-[15px]">Self Registered</span>
+        <i data-lucide="file-text" class="w-5 h-5"></i>
+        <span class="text-[15px]">Self Registered</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -64,7 +78,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path.startswith('/admin/payments') %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        🧾 <span class="text-[15px]">Payments</span>
+        <i data-lucide="credit-card" class="w-5 h-5"></i>
+        <span class="text-[15px]">Payments</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -73,7 +88,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path.startswith('/admin/equipment') %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        🛠️ <span class="text-[15px]">Equipment</span>
+        <i data-lucide="wrench" class="w-5 h-5"></i>
+        <span class="text-[15px]">Equipment</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -82,7 +98,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/request-equipment' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        🧾 <span class="text-[15px]">Equipment requests</span>
+        <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+        <span class="text-[15px]">Equipment requests</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -93,7 +110,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/doctors' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        👨‍⚕️ <span class="text-[15px]">Doctors</span>
+        <i data-lucide="stethoscope" class="w-5 h-5"></i>
+        <span class="text-[15px]">Doctors</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -104,7 +122,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/patients' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        🧑‍🦽 <span class="text-[15px]">Patients</span>
+        <i data-lucide="users" class="w-5 h-5"></i>
+        <span class="text-[15px]">Patients</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -115,7 +134,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path.startswith('/admin/staff/manage') %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        👷 <span class="text-[15px]">Staff</span>
+        <i data-lucide="user-cog" class="w-5 h-5"></i>
+        <span class="text-[15px]">Staff</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -126,7 +146,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/medicine' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        💊 <span class="text-[15px]">Medicines</span>
+        <i data-lucide="pill" class="w-5 h-5"></i>
+        <span class="text-[15px]">Medicines</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -137,7 +158,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/sos' %} bg-red-50 text-red-500 shadow-sm {% else %} text-gray-500 hover:bg-red-50 hover:text-red-500 {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        🚨 <span class="text-[15px]">SOS</span>
+        <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500"></i>
+        <span class="text-[15px]">SOS</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -148,7 +170,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/complaints' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        📝 <span class="text-[15px]">Complaints</span>
+        <i data-lucide="message-square-warning" class="w-5 h-5"></i>
+        <span class="text-[15px]">Complaints</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -159,7 +182,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/notifications' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        🔔 <span class="text-[15px]">Notifications</span>
+        <i data-lucide="bell" class="w-5 h-5"></i>
+        <span class="text-[15px]">Notifications</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -171,7 +195,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/nurses' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        👩‍⚕️ <span class="text-[15px]">Nurses</span>
+        <i data-lucide="stethoscope" class="w-5 h-5"></i>
+        <span class="text-[15px]">Nurses</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -182,7 +207,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/nurses/self' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        🧾 <span class="text-[15px]">Self Registered</span>
+        <i data-lucide="file-text" class="w-5 h-5"></i>
+        <span class="text-[15px]">Self Registered</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -192,7 +218,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/patients' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        🧑‍🦽 <span class="text-[15px]">Patients</span>
+        <i data-lucide="users" class="w-5 h-5"></i>
+        <span class="text-[15px]">Patients</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -206,7 +233,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/doctors' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        👨‍⚕️ <span class="text-[15px]">Doctors</span>
+        <i data-lucide="stethoscope" class="w-5 h-5"></i>
+        <span class="text-[15px]">Doctors</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -216,7 +244,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/medicine' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        💊 <span class="text-[15px]">Medicines</span>
+        <i data-lucide="pill" class="w-5 h-5"></i>
+        <span class="text-[15px]">Medicines</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -226,7 +255,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/patients' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        🧑‍🦽 <span class="text-[15px]">Patients</span>
+        <i data-lucide="users" class="w-5 h-5"></i>
+        <span class="text-[15px]">Patients</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -240,7 +270,8 @@
       class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/patients' %} bg-white text-primary shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-primary {% endif %}"
     >
       <div class="flex items-center gap-3 text-lg">
-        🧑‍🦽 <span class="text-[15px]">Patients</span>
+        <i data-lucide="users" class="w-5 h-5"></i>
+        <span class="text-[15px]">Patients</span>
       </div>
       <span class="text-lg">›</span>
     </a>
@@ -258,7 +289,8 @@
         onclick="logout()"
         class="flex cursor-pointer text-center scale-95 hover:scale-[97%] !bg-red-500 items-center justify-between px-4 py-3 rounded-xl text-primary shadow-sm text-white"
       >
-        🚪 Logout
+        <i data-lucide="log-out" class="w-5 h-5"></i>
+        Logout
       </a>
     </div>
 

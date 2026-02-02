@@ -3,6 +3,12 @@ from datetime import datetime , time
 from xml.dom.minidom import Document
 from mongoengine import *
 
+class HospitalModel(Document):
+    name = StringField(required=True)
+    address = StringField(required=True)
+    branch = StringField(required=True)
+
+
 class User(Document):
     token_version = IntField(default=0)
     role = StringField(
@@ -23,6 +29,7 @@ class User(Document):
     last_login = DateTimeField()
     token = StringField(required=True, default="No_token")
     created_at = DateTimeField(default=datetime.utcnow)
+    hospital = ReferenceField(HospitalModel, required=False)
 
 class AboutUs(Document):
     name = StringField()
@@ -539,4 +546,6 @@ class AllPaymentsHistory(Document):
     )
     order_id = StringField(required=True)
     payment_id = StringField()
+
+
 

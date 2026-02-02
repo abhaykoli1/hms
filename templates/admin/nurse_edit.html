@@ -43,32 +43,6 @@
 
 <form id="nurseForm">
 
-<!-- <div class="overflow-auto">
-  <table class="table table-hover align-middle">
-    <thead class="table-light">
-      <tr>
-        <th>Name</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      {% if patients %}
-        {% for patient in patients %}
-        <tr>
-          <td>{{ patient.user.name }}</td>
-          <td>{{ patient.id }}</td>
-        </tr>
-        {% endfor %}
-      {% else %}
-        <tr>
-          <td class="text-center text-muted">No patients found</td>
-        </tr>
-      {% endif %}
-    </tbody>
-  </table>
-</div> -->
-
-
   <!-- ================= VERIFICATION ================= -->
  <div class="bg-card px-3  pt-3 mb-3 border border-gray-50/20 rounded-2xl shadow-soft4">
 
@@ -143,6 +117,33 @@
           value="{{ nurse.resignation_date.strftime('%Y-%m-%d') if nurse.resignation_date else '' }}"
         />
       </div>
+      <div class="col-md-4 mb-3">
+  <label>Hospital</label>
+  <select class="form-select" name="hospital">
+    <option value="">Select Hospital</option>
+
+    {% for h in hospitals %}
+      <option
+        value="{{ h.id }}"
+        {{ 'selected' if nurse.user and nurse.user.hospital == h.id else '' }}
+      >
+        {{ h.name }} ({{ h.branch }})
+      </option>
+    {% endfor %}
+
+  </select>
+</div>
+
+     <!-- <div class="col-md-4 mb-3">
+  <label>Hospital</label>
+<select
+  class="form-select"
+  name="hospital"
+  id="hospitalSelect"
+>
+    <option value="">Select Hospital</option>
+  </select>
+</div> -->
     </div>
 
     <div class="form-check mt-2">
@@ -299,6 +300,7 @@ function headers() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  
 
  if (!localStorage.getItem("token")) {
     window.location.href = "/admin/login";
@@ -334,6 +336,47 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
+
+<!-- <script>
+document.addEventListener("DOMContentLoaded", async () => {
+
+  // 🔐 Token check already hai tumhare code me
+
+  const hospitalSelect = document.getElementById("hospitalSelect");
+
+  try {
+    const res = await fetch("/hospital/get-all", {
+      headers: {
+        "Authorization": "Bearer " + localStorage.getItem("token")
+      }
+    });
+
+    const hospitals = await res.json();
+
+    if (!res.ok) {
+      alert("Failed to load hospitals");
+      return;
+    }
+
+    hospitals.forEach(h => {
+      const opt = document.createElement("option");
+      opt.value = h.id;
+      opt.textContent = `${h.name} (${h.branch})`;
+      hospitalSelect.appendChild(opt);
+    });
+
+    // 🔁 agar nurse already hospital assigned hai
+    {% if nurse.hospital_id %}
+      hospitalSelect.value = "{{ nurse.hospital_id }}";
+    {% endif %}
+
+  } catch (err) {
+    console.error(err);
+    alert("Hospital API error");
+  }
+
+});
+</script> -->
 
 
 
@@ -452,6 +495,9 @@ async function updatePassword() {
 }
 
 </script>
+
+
+
 
 
 {% endblock %}
