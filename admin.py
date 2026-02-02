@@ -3,9 +3,12 @@ from collections import defaultdict
 from datetime import date, timedelta
 from http.client import HTTPException
 import json
+from typing import List, Optional
 from core.dependencies import get_current_user , role_required
 from fastapi import APIRouter, Request , Depends
 from fastapi.params import Form
+from pydantic import BaseModel
+
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from models import *
@@ -742,11 +745,14 @@ def edit_nurse(nurse_id: str, request: Request):
 
 @router.get("/create/doctor", response_class=HTMLResponse)
 def doctor_create_page(request: Request):
+    hospitals = HospitalModel.objects.all()
     return templates.TemplateResponse(
         "admin/doctor_create.html",
-        {"request": request}
+        {
+         "request": request,
+         "hospitals": hospitals
+        }
     )
-
 
     return user
 @router.get("/doctors/{doctor_id}", response_class=HTMLResponse)
@@ -817,6 +823,10 @@ def render_patient_care(
     duties = NurseDuty.objects(patient=patient, is_active=True)
     notes = PatientDailyNote.objects(patient=patient).order_by("-created_at")
     vitals = PatientVitals.objects(patient=patient).order_by("-recorded_at")
+    hospitals = HospitalModel.objects.all()
+    visits = NurseVisit.objects(patient=patient).order_by("-visit_time")
+
+    print(patient.to_json())
 
     return templates.TemplateResponse(
         "admin/edit_patient.html",
@@ -825,12 +835,45 @@ def render_patient_care(
             "patient": patient,
             "doctor": patient.assigned_doctor,
             "nurses": nurses,
+            "visits":visits,
             "duties": duties,
             "notes": notes,
             "vitals": vitals,
+            "hospitals": hospitals,
         }
     )
 
+
+# @router.get("/patient/{patient_id}/view", response_class=HTMLResponse)
+# def view_patient_details(request: Request, patient_id: str):
+#     patient = PatientProfile.objects(id=patient_id).first()
+#     if not patient:
+#         raise HTTPException(status_code=404, detail="Patient not found")
+
+#     nurses = NurseProfile.objects()
+#     duties = NurseDuty.objects(patient=patient, is_active=True)
+#     notes = PatientDailyNote.objects(patient=patient).order_by("-created_at")
+#     vitals = PatientVitals.objects(patient=patient).order_by("-recorded_at")
+#     medications = PatientMedication.objects(patient=patient)
+#     relatives = RelativeAccess.objects(patient=patient)
+#     relatives = RelativeAccess.objects(patient=patient)
+#     all_users = User.objects(role="RELATIVE")
+    
+#     return templates.TemplateResponse(
+#         "admin/view_patient.html",
+#         {
+#             "request": request,
+#             "patient": patient,
+#             "doctor": patient.assigned_doctor,
+#             "nurses": nurses,
+#             "duties": duties,
+#             "notes": notes,
+#             "vitals": vitals,
+#             "medications": medications,
+#             "relatives": relatives,
+#             "relatives": relatives,
+#         }
+#     )
 
 @router.get("/patient/{patient_id}/view", response_class=HTMLResponse)
 def view_patient_details(request: Request, patient_id: str):
@@ -838,27 +881,25 @@ def view_patient_details(request: Request, patient_id: str):
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
 
-    nurses = NurseProfile.objects()
-    duties = NurseDuty.objects(patient=patient, is_active=True)
+    duties = NurseDuty.objects(
+        patient=patient
+    ).order_by("-duty_start")
+
     notes = PatientDailyNote.objects(patient=patient).order_by("-created_at")
     vitals = PatientVitals.objects(patient=patient).order_by("-recorded_at")
     medications = PatientMedication.objects(patient=patient)
     relatives = RelativeAccess.objects(patient=patient)
-    relatives = RelativeAccess.objects(patient=patient)
-    all_users = User.objects(role="RELATIVE")
-    
+
     return templates.TemplateResponse(
         "admin/view_patient.html",
         {
             "request": request,
             "patient": patient,
             "doctor": patient.assigned_doctor,
-            "nurses": nurses,
-            "duties": duties,
+            "duties": duties,     # ✅ ALL duties now
             "notes": notes,
             "vitals": vitals,
             "medications": medications,
-            "relatives": relatives,
             "relatives": relatives,
         }
     )

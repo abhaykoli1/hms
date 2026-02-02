@@ -118,17 +118,18 @@ endblock %} {% block content %}
         <!-- ACTIONS -->
         <td class="text-center">
           <button
-            class="btn btn-sm btn-outline-primary"
+            class="btn btn-sm hover:bg-yellow-100"
             onclick="window.location.href='/admin/nurses/{{ nurse.id }}'"
           >
-            👁️
+           <i data-lucide="eye" class="w-5 h-5 text-yellow-600"></i>
           </button>
 
           <a
             href="/admin/nurses/{{ nurse.id }}/edit"
-            class="btn btn-sm btn-outline-warning"
+            class="btn btn-sm hover:bg-yellow-100"
           >
-            ✏️
+                    <i data-lucide="pencil" class="w-5 h-5 text-yellow-600"></i>
+
           </a>
 
           <!-- <a

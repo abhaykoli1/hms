@@ -6,7 +6,7 @@ from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException
 from core.dependencies import get_current_user
 from models import (
-    EquipmentTable, HospitalModel, Medicine, NurseDuty, NurseProfile, PatientProfile, PatientDailyNote,
+    DoctorProfile, EquipmentTable, HospitalModel, Medicine, NurseDuty, NurseProfile, PatientProfile, PatientDailyNote,
     PatientVitals, PatientMedication, RelativeAccess, User, UserEquipmentRequest
 )
 from datetime import datetime
@@ -15,6 +15,7 @@ from pydantic import BaseModel, EmailStr
 from routes.auth.schemas import EquipmentCreate, EquipmentRequestCreate, EquipmentRequestUpdate, EquipmentUpdate
 
 router = APIRouter(prefix="/patient", tags=["Patient"])
+
 equipment_router = APIRouter(prefix="/equipment")
 
 @router.post("/create")
@@ -55,6 +56,81 @@ def create_patient(payload: dict):
         )
 
     return {"message": "Patient registered", "id": str(patient.id)}
+
+
+class PatientUpdatePayload(BaseModel):
+    # 🔹 USER
+    name: Optional[str] = None
+    phone: Optional[str] = None
+    other_number: Optional[str] = None
+    email: Optional[str] = None
+
+    # 🔹 PATIENT
+    age: Optional[int] = None
+    gender: Optional[str] = None
+    medical_history: Optional[str] = None
+    address: Optional[str] = None
+    service_start: Optional[str] = None
+    service_end: Optional[str] = None
+
+    hospital: Optional[str] = None
+    assigned_doctor: Optional[str] = None
+    documents: Optional[List[str]] = None
+
+
+@router.put("/{patient_id}/edit")
+def update_patient(patient_id: str, payload: PatientUpdatePayload):
+    patient = PatientProfile.objects(id=patient_id).first()
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    user = patient.user
+
+    # ===== USER UPDATE =====
+    if payload.name is not None:
+        user.name = payload.name
+
+    if payload.phone is not None:
+        exists = User.objects(phone=payload.phone, id__ne=user.id).first()
+        if exists:
+            raise HTTPException(status_code=400, detail="Phone already exists")
+        user.phone = payload.phone
+
+    if payload.other_number is not None:
+        user.other_number = payload.other_number
+
+    if payload.email is not None:
+        user.email = payload.email
+
+    # 🔥 HOSPITAL UPDATE (FIXED)
+    if payload.hospital is not None:
+        user.hospital = HospitalModel.objects(id=payload.hospital).first()
+
+    user.save()
+
+    # ===== PATIENT UPDATE =====
+    for field in ["age", "gender", "medical_history", "address", "documents"]:
+        value = getattr(payload, field)
+        if value is not None:
+            setattr(patient, field, value)
+
+    if payload.service_start:
+        patient.service_start = datetime.strptime(payload.service_start, "%Y-%m-%d")
+
+    if payload.service_end:
+        patient.service_end = datetime.strptime(payload.service_end, "%Y-%m-%d")
+
+    if payload.assigned_doctor:
+        patient.assigned_doctor = DoctorProfile.objects(
+            id=payload.assigned_doctor
+        ).first()
+
+    patient.save()
+
+    return {
+        "success": True,
+        "message": "Patient updated successfully"
+    }
 
 @router.post("/{patient_id}/add-document")
 def add_patient_document(patient_id: str, path: str):
@@ -261,6 +337,45 @@ def get_patient_care(patient_id: str):
         "vitals": vitals,
     }
 
+# @router.post("/{patient_id}/assign-nurse")
+# def assign_nurse_duty(patient_id: str, payload: dict):
+#     patient = PatientProfile.objects(id=patient_id).first()
+#     nurse = NurseProfile.objects(id=payload.get("nurse_id")).first()
+
+#     if not patient:
+#         raise HTTPException(status_code=404, detail="Patient not found")
+
+#     if not nurse:
+#         raise HTTPException(status_code=404, detail="Nurse not found")
+
+#     # 🔥 deactivate previous duties for this patient
+#     NurseDuty.objects(
+#         patient=patient,
+#         is_active=True
+#     ).update(set__is_active=False)
+
+#     # ✅ SAFE STRING CAST (VERY IMPORTANT)
+#     ward = payload.get("ward")
+#     room = payload.get("room")
+
+#     NurseDuty(
+#         patient=patient,
+#         nurse=nurse,
+#         ward=str(ward) if ward is not None else "",
+#         room=str(room) if room is not None else "",
+#         duty_type=payload.get("duty_type"),
+#         shift=payload.get("shift"),
+#         duty_start=datetime.fromisoformat(payload.get("duty_start")),
+#         duty_end=datetime.fromisoformat(payload.get("duty_end")),
+#         is_active=True,
+#     ).save()
+
+#     return {
+#         "success": True,
+#         "message": "Nurse assigned successfully"
+#     }
+
+
 @router.post("/{patient_id}/assign-nurse")
 def assign_nurse_duty(patient_id: str, payload: dict):
     patient = PatientProfile.objects(id=patient_id).first()
@@ -268,31 +383,41 @@ def assign_nurse_duty(patient_id: str, payload: dict):
 
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
-
     if not nurse:
         raise HTTPException(status_code=404, detail="Nurse not found")
 
-    # 🔥 deactivate previous duties for this patient
+    # 🔥 deactivate previous active duties
     NurseDuty.objects(
         patient=patient,
         is_active=True
     ).update(set__is_active=False)
 
-    # ✅ SAFE STRING CAST (VERY IMPORTANT)
-    ward = payload.get("ward")
-    room = payload.get("room")
+    duty_location = payload.get("dutyLocation")  # HOME / HOSPITAL
 
-    NurseDuty(
+    duty = NurseDuty(
         patient=patient,
         nurse=nurse,
-        ward=str(ward) if ward is not None else "",
-        room=str(room) if room is not None else "",
+
         duty_type=payload.get("duty_type"),
         shift=payload.get("shift"),
+        dutyLocation=duty_location,
+
+        # 🏥 hospital fields
+        ward=payload.get("ward") if duty_location == "HOSPITAL" else None,
+        room_no=payload.get("room_no") if duty_location == "HOSPITAL" else None,
+
+        # 🏠 home field
+        address=payload.get("address") if duty_location == "HOME" else None,
+
         duty_start=datetime.fromisoformat(payload.get("duty_start")),
         duty_end=datetime.fromisoformat(payload.get("duty_end")),
+
+        check_in=None,
+        check_out=None,
         is_active=True,
-    ).save()
+    )
+
+    duty.save()
 
     return {
         "success": True,

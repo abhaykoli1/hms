@@ -117,22 +117,22 @@
           value="{{ nurse.resignation_date.strftime('%Y-%m-%d') if nurse.resignation_date else '' }}"
         />
       </div>
-      <div class="col-md-4 mb-3">
+     <div class="col-md-4 mb-3">
   <label>Hospital</label>
   <select class="form-select" name="hospital">
     <option value="">Select Hospital</option>
 
     {% for h in hospitals %}
-      <option
-        value="{{ h.id }}"
-        {{ 'selected' if nurse.user and nurse.user.hospital == h.id else '' }}
-      >
+      <option value="{{ h.id }}"
+        {% if nurse.user and nurse.user.hospital and nurse.user.hospital.id == h.id %}
+          selected
+        {% endif %}>
         {{ h.name }} ({{ h.branch }})
       </option>
     {% endfor %}
-
   </select>
 </div>
+
 
      <!-- <div class="col-md-4 mb-3">
   <label>Hospital</label>
@@ -217,7 +217,7 @@
 
   <!-- ================= SUBMIT ================= -->
   <button type="button" class="btn btn-success" id="submitBtn">
-    💾 Save Changes
+    Save Changes
   </button>
   <!-- <a href="/admin/nurses/{{ nurse.id }}" class="btn btn-secondary">Cancel</a> -->
 </form>
@@ -285,7 +285,7 @@
 
   <div class="mt-3">
     <button class="btn btn-success " onclick="createVisit()">
-      💾 Create Visit
+     Create Visit
     </button>
   </div>
 </div>
@@ -336,47 +336,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
-
-<!-- <script>
-document.addEventListener("DOMContentLoaded", async () => {
-
-  // 🔐 Token check already hai tumhare code me
-
-  const hospitalSelect = document.getElementById("hospitalSelect");
-
-  try {
-    const res = await fetch("/hospital/get-all", {
-      headers: {
-        "Authorization": "Bearer " + localStorage.getItem("token")
-      }
-    });
-
-    const hospitals = await res.json();
-
-    if (!res.ok) {
-      alert("Failed to load hospitals");
-      return;
-    }
-
-    hospitals.forEach(h => {
-      const opt = document.createElement("option");
-      opt.value = h.id;
-      opt.textContent = `${h.name} (${h.branch})`;
-      hospitalSelect.appendChild(opt);
-    });
-
-    // 🔁 agar nurse already hospital assigned hai
-    {% if nurse.hospital_id %}
-      hospitalSelect.value = "{{ nurse.hospital_id }}";
-    {% endif %}
-
-  } catch (err) {
-    console.error(err);
-    alert("Hospital API error");
-  }
-
-});
-</script> -->
 
 
 
@@ -495,9 +454,6 @@ async function updatePassword() {
 }
 
 </script>
-
-
-
 
 
 {% endblock %}

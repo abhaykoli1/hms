@@ -21,10 +21,10 @@ content %}
 
     <div class="d-flex gap-2">
       <button
-        class="bg-green-500 text-white px-2 py-1.5 !rounded-xl hover:bg-green-600 transition-colors"
+        class="bg-success -500 text-white px-2 py-1.5 !rounded-xl hover:bg-success -600 transition-colors"
         onclick="location.href = '/admin/create/patient'"
       >
-        ➕ Add Patient
+        Add Patient
       </button>
     </div>
   </div>
@@ -34,15 +34,15 @@ content %}
     <table class="table table-hover overflow-auto align-middle">
       <thead class="table-light">
         <tr>
-          <th class="min-w-40">Name</th>
-          <th>Age</th>
+          <th class="min-w-80">Name</th>
+          <!-- <th>Age</th> -->
           <th>Gender</th>
           <th>Age</th>
-          <th>Mobile</th>
+          <th class="min-w-32">Mobile</th>
           <th class="min-w-40">Doctor</th>
           <th class="min-w-96">Address / Ward</th>
           <th>Status</th>
-          <th class="text-center">Actions</th>
+          <th class="text-center min-w-32">Actions</th>
         </tr>
       </thead>
 
@@ -53,7 +53,7 @@ content %}
           <td>{{ patient.user.name }}</td>
 
           <!-- AGE -->
-          <td>{{ patient.age or "-" }}</td>
+          <!-- <td>{{ patient.age or "-" }}</td> -->
 
           <!-- GENDER -->
           <td>{{ patient.gender or "-" }}</td>
@@ -84,19 +84,21 @@ content %}
           </td>
 
           <!-- ACTIONS -->
-          <td class="text-center flex gap-2">
+          <td class="text-center flex items-center justify-center gap-0 min-w-32">
             <a
               href="/admin/patient/{{ patient.id }}/view"
-              class="btn btn-sm btn-outline-secondary"
-            >
-              👁️
+                          class="btn btn-sm hover:bg-yellow-100">
+                          <!-- class="btn btn-sm btn-outline-secondary" -->
+        <i data-lucide="eye" class="w-5 h-5 text-yellow-600"></i>
             </a>
 
             <a
               href="/admin/patient/{{ patient.id }}/care"
-              class="btn btn-sm btn-outline-warning"
-            >
-              ✏️
+                          class="btn btn-sm hover:bg-yellow-100"
+
+              >
+              <!-- class="btn btn-sm btn-outline-warning" -->
+              <i data-lucide="pencil" class="w-5 h-5 text-yellow-600"></i>
             </a>
 
             {% if not patient.service_end %}

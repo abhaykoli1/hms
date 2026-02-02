@@ -10,10 +10,10 @@ content %}
         📄 Nurse Consent
       </a> -->
       <button
-        class="bg-green-500 text-white px-2 py-1.5 !rounded-xl hover:bg-green-600 transition-colors"
+        class="bg-success -500 text-white px-3 py-1.5 !rounded-xl hover:bg-success -600 transition-colors"
         onclick="window.location.href = '/admin/create/nurse'"
       >
-        ➕ Add Nurse
+        Add Nurse
       </button>
     </div>
   </div>
@@ -117,18 +117,18 @@ content %}
         <td class="text-center">
           <!-- <div class="flex"> -->
           <button
-            class="btn btn-sm btn-outline-primary"
+            class="btn btn-sm hover:bg-yellow-100"
             title="View Details"
             onclick="window.location.href='/admin/nurses/{{ nurse.id }}'"
           >
-            👁️
+           <i data-lucide="eye" class="w-5 h-5 text-yellow-600"></i>
           </button>
 
           <a
             href="/admin/nurses/{{ nurse.id }}/edit"
-            class="btn btn-sm btn-outline-warning"
+            class="btn btn-sm hover:bg-yellow-100"
           >
-            ✏️
+            <i data-lucide="pencil" class="w-5 h-5 text-yellow-600"></i>
           </a>
           <!-- <a
             class="btn btn-sm btn-outline-warning"
@@ -137,7 +137,7 @@ content %}
             🗑️
           </a> -->
 
-          {% if nurse.user.is_active %}
+          <!-- {% if nurse.user.is_active %}
           <button class="btn btn-sm btn-outline-danger" title="Deactivate">
             🚫
           </button>
@@ -145,7 +145,7 @@ content %}
           <button class="btn btn-sm btn-outline-success" title="Activate">
             ✅
           </button>
-          {% endif %}
+          {% endif %} -->
           <!-- </div> -->
         </td>
       </tr>

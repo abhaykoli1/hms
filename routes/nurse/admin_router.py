@@ -224,48 +224,39 @@ def update_nurse_admin(
     salary_date: int = Form(...),
     digital_signature_verify: bool = Form(False),
     hospital: str | None = Form(None)
-):  
-    
+):
     nurse = NurseProfile.objects(id=nurse_id).first()
     if not nurse:
         raise HTTPException(404, "Nurse not found")
 
-    # ✅ checkbox fix
     nurse.aadhaar_verified = aadhaar_verified == "true"
     nurse.police_verification_status = police_verification_status
     nurse.nurse_type = nurse_type
 
-    # ✅ date fix
-    nurse.joining_date = (
-        date.fromisoformat(joining_date)
-        if joining_date else None
-    )
-    nurse.resignation_date = (
-        date.fromisoformat(resignation_date)
-        if resignation_date else None
-    )
+    nurse.joining_date = date.fromisoformat(joining_date) if joining_date else None
+    nurse.resignation_date = date.fromisoformat(resignation_date) if resignation_date else None
     nurse.digital_signature_verify = digital_signature_verify
 
     nurse.save()
-    if nurse.digital_signature_verify == True:
-       send_account_approved_email(
-       f"{nurse.user.email}",
-       username=f"{nurse.user.name}"
-       )
 
-    # ✅ user active fix
+    # 🔥 USER UPDATE
     if nurse.user:
         nurse.user.is_active = is_active == "true"
-        nurse.user.hospital = HospitalModel.objects.get(id=ObjectId(hospital))
+
+        # ✅ HOSPITAL FIX
+        if hospital:
+            nurse.user.hospital = HospitalModel.objects(id=hospital).first()
+        else:
+            nurse.user.hospital = None
+
         nurse.user.save()
 
-    # ✅ consent FIX (no hardcoded status)
+    # ✅ CONSENT
     consent = NurseConsent.objects(nurse=nurse).order_by("-created_at").first()
-
     if not consent:
         consent = NurseConsent(
             nurse=nurse,
-            shift_type="DAY",      # default only if missing
+            shift_type="DAY",
             duty_hours=8,
             status="PENDING"
         )
@@ -274,7 +265,6 @@ def update_nurse_admin(
     consent.salary_amount = salary_amount
     consent.payment_mode = payment_mode
     consent.salary_date = salary_date
-
     consent.save()
 
     return {"success": True}

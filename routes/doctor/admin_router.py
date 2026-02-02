@@ -31,16 +31,15 @@ def assign_patient(
 
 @router.post("/create-new")
 def create_doctor(
-    name :  str | None = Form(None), 
+    name: str | None = Form(None),
     phone: str = Form(...),
     email: str | None = Form(None),
     specialization: str | None = Form(None),
     registration_number: str | None = Form(None),
     experience_years: int | None = Form(None),
-    available: bool = Form(True)
+    available: bool = Form(True),
+    hospital: str | None = Form(None),   # 🔥 ADD THIS
 ):
-    print("AVAILABLE:", name )
-
     # 🔍 Check existing user
     if User.objects(phone=phone).first():
         raise HTTPException(400, "Phone already registered")
@@ -54,7 +53,13 @@ def create_doctor(
         email=email,
         is_active=True,
         created_at=datetime.utcnow()
-    ).save()
+    )
+
+    # 🔥 Hospital set on USER
+    if hospital:
+        user.hospital = HospitalModel.objects(id=hospital).first()
+
+    user.save()
 
     # 🧑‍⚕️ Create Doctor Profile
     doctor = DoctorProfile(
@@ -77,20 +82,26 @@ def update_doctor(
     registration_number: str = Form(...),
     experience_years: int = Form(...),
     available: bool = Form(...),
-    hospital: str = Form(...),
+    hospital: str = Form(None),
 ):
     doctor = DoctorProfile.objects(id=doctor_id).first()
     if not doctor:
         raise HTTPException(404, "Doctor not found")
 
+    # doctor profile update
     doctor.update(
         set__specialization=specialization,
         set__registration_number=registration_number,
         set__experience_years=experience_years,
         set__available=available
-
     )
-    doctor.user.hospital = HospitalModel.objects.get(id=ObjectId(hospital))
+
+    # 🔥 hospital update (USER MODEL)
+    if hospital:
+        doctor.user.hospital = HospitalModel.objects(id=hospital).first()
+    else:
+        doctor.user.hospital = None
+
     doctor.user.save()
 
     return RedirectResponse(
