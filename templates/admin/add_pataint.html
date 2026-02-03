@@ -169,7 +169,7 @@ block content %}
       for (let file of files) {
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("folder", "patient_docs");
+        formData.append("folder", "documents");
 
         try {
           const res = await fetch("/upload/file", {
