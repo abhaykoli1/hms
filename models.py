@@ -67,6 +67,7 @@ class NurseProfile(Document):
         default="PENDING"
     )
     police = ListField(StringField(), default=list)
+    
     police_verification_status = StringField(
         choices=["PENDING", "CLEAR", "FAILED"],
         default="PENDING"

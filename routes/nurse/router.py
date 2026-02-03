@@ -315,12 +315,6 @@ async def create_nurse(payload: NurseCreateRequest , request: Request):
     raw_body = await request.body()
     print("🔵 RAW REQUEST BODY:", raw_body)
     try:
-        # 🔍 RAW BODY (as sent by client)
-
-        # 🔍 Parsed payload (after Pydantic validation)
-        # print("🟢 PARSED PAYLOAD:", payload.dict())
-
-        # 🔹 Duplicate phone check
         if User.objects(phone=payload.phone).first():
             raise HTTPException(status_code=400, detail="Phone number already registered")
 

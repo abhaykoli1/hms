@@ -1,16 +1,19 @@
 import json
+import traceback
 from typing import Optional , List
 from urllib import request
+from datetime import datetime, timedelta,date
+
 
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException ,Request
 from core.dependencies import get_current_user
 from models import (
     DoctorProfile, EquipmentTable, HospitalModel, Medicine, NurseDuty, NurseProfile, PatientProfile, PatientDailyNote,
     PatientVitals, PatientMedication, RelativeAccess, User, UserEquipmentRequest
 )
-from datetime import datetime
-from mongoengine.errors import NotUniqueError
+
+from mongoengine.errors import NotUniqueError ,ValidationError
 from pydantic import BaseModel, EmailStr
 from routes.auth.schemas import EquipmentCreate, EquipmentRequestCreate, EquipmentRequestUpdate, EquipmentUpdate
 
@@ -18,44 +21,154 @@ router = APIRouter(prefix="/patient", tags=["Patient"])
 
 equipment_router = APIRouter(prefix="/equipment")
 
+class PatientCreateRequest(BaseModel):
+    name: str
+    phone: str
+
+    father_name: Optional[str] = None
+    other_number: Optional[str] = None
+    email: Optional[EmailStr] = None
+
+    age: Optional[int] = None
+    gender: Optional[str] = None
+    medical_history: Optional[str] = None
+    address: Optional[str] = None
+
+    service_start: Optional[date] = None
+    service_end: Optional[date] = None
+
+    hospital: Optional[str] = None
+    assigned_doctor: Optional[str] = None
+
+    documents: List[str] = []   # 🔥 IMPORTANT
+
 @router.post("/create")
-def create_patient(payload: dict):
+async def create_patient(
+    payload: PatientCreateRequest,
+    request: Request
+):
+    print("🟢 CREATE PATIENT PAYLOAD:", payload)
+    raw_body = await request.body()
+    print("🔵 RAW REQUEST BODY:", raw_body)
+
     try:
+        # ❌ duplicate phone check
+        if User.objects(phone=payload.phone).first():
+            raise HTTPException(
+                status_code=400,
+                detail="Phone number already registered"
+            )
+
+        # 🔹 Create USER
         user = User(
             role="PATIENT",
-            name=payload["name"],
-            father_name=payload.get("father_name"),
-            phone=payload["phone"],
-            password_hash=payload["phone"],
-            other_number=payload.get("other_number"),
-            email=payload.get("email"),
-            hospital=HospitalModel.objects.get(id=ObjectId(payload.get("hospital")))
-        ).save()
-
-        patient = PatientProfile(
-            user=user,
-            age=payload.get("age"),
-            gender=payload.get("gender"),
-            medical_history=payload.get("medical_history"),
-            address=payload.get("address"),
-            service_start=payload.get("service_start"),
-            service_end=payload.get("service_end"),
-            assigned_doctor=payload.get("assigned_doctor"),
-            documents=payload.get("documents", [])   # ✅ HERE
-        ).save()
-
-        return {"success": True, "patient_id": str(patient.id)}
-
-    except NotUniqueError:
-        raise HTTPException(status_code=400, detail="Phone already registered")
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
+            name=payload.name,
+            father_name=payload.father_name,
+            phone=payload.phone,
+            password_hash=payload.phone,
+            other_number=payload.other_number,
+            email=payload.email,
+            otp_verified=True,
+            is_active=True
         )
 
-    return {"message": "Patient registered", "id": str(patient.id)}
+        # 🏥 Hospital (safe)
+        if payload.hospital:
+            user.hospital = HospitalModel.objects.get(
+                id=ObjectId(payload.hospital)
+            )
+
+        user.save()
+
+        # 🔹 Create PATIENT PROFILE
+        patient = PatientProfile(
+            user=user,
+            age=payload.age,
+            gender=payload.gender,
+            medical_history=payload.medical_history,
+            address=payload.address,
+            service_start=payload.service_start,
+            service_end=payload.service_end,
+            documents=payload.documents or []
+        )
+
+        # 👨‍⚕️ Assign doctor (safe)
+        if payload.assigned_doctor:
+            patient.assigned_doctor = DoctorProfile.objects.get(
+                id=ObjectId(payload.assigned_doctor)
+            )
+
+        patient.save()
+
+        return {
+            "success": True,
+            "patient_id": str(patient.id),
+            "user_id": str(user.id)
+        }
+
+    # 🔴 Mongo validation error
+    except ValidationError as e:
+        print("ValidationError:", e)
+        raise HTTPException(status_code=400, detail=str(e))
+
+    # 🔴 Duplicate phone/email
+    except NotUniqueError:
+        raise HTTPException(
+            status_code=400,
+            detail="Phone already registered"
+        )
+
+    # 🔴 FastAPI raised error
+    except HTTPException as e:
+        raise e
+
+    # 🔴 Unknown crash
+    except Exception as e:
+        print("Unhandled Exception:", e)
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail="Internal server error while creating patient"
+        )
+
+# @router.post("/create")
+# def create_patient(payload: dict):
+#     try:
+#         user = User(
+#             role="PATIENT",
+#             name=payload["name"],
+#             father_name=payload.get("father_name"),
+#             phone=payload["phone"],
+#             password_hash=payload["phone"],
+#             other_number=payload.get("other_number"),
+#             email=payload.get("email"),
+#             hospital=HospitalModel.objects.get(id=ObjectId(payload.get("hospital")))
+#         ).save()
+
+#         patient = PatientProfile(
+#             user=user,
+#             age=payload.get("age"),
+#             gender=payload.get("gender"),
+#             medical_history=payload.get("medical_history"),
+#             address=payload.get("address"),
+#             service_start=payload.get("service_start"),
+#             service_end=payload.get("service_end"),
+#             assigned_doctor=payload.get("assigned_doctor"),
+#             documents=payload.get("documents", [])   # ✅ HERE
+#         ).save()
+
+#         return {"success": True, "patient_id": str(patient.id)}
+
+#     except NotUniqueError:
+#         raise HTTPException(status_code=400, detail="Phone already registered")
+
+#     except Exception as e:
+#         raise HTTPException(
+#             status_code=500,
+#             detail=str(e)
+#         )
+
+#     return {"message": "Patient registered", "id": str(patient.id)}
 
 
 class PatientUpdatePayload(BaseModel):
