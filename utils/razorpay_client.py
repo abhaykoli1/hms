@@ -2,5 +2,5 @@ import razorpay
 import os
 
 client = razorpay.Client(
-    auth=("rzp_test_SAwN0AJIvEBZt1", "fkQI6ZHITuy9AwS7wP3uUy66")
+    auth=("rzp_live_SBbgiyIPp35rea", "DOXXoi562ExGGGHOL91gacUz")
 )
