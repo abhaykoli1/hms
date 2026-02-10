@@ -1,6 +1,10 @@
 import cv2
 from fastapi.responses import JSONResponse
 import pytesseract
+import pytesseract
+
+pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+
 import re
 import numpy as np
 from fastapi import APIRouter,UploadFile, File,Depends, HTTPException, Request,status
@@ -8,7 +12,7 @@ from aadhaar_service import AadhaarService as aadhaar
 
 from core.dependencies import get_current_user
 from models import NurseProfile
-router = APIRouter(prefix="/adhar")
+router = APIRouter(prefix="/adhar", tags=["adhar"])
 
 def extract_aadhaar_from_image(image_bytes):
     # bytes → numpy array
