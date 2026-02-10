@@ -1,21 +1,26 @@
 import cv2
 from fastapi.responses import JSONResponse
 import pytesseract
-import pytesseract
-
-pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
-
 import re
 import numpy as np
-from fastapi import APIRouter,UploadFile, File,Depends, HTTPException, Request,status
-from aadhaar_service import AadhaarService as aadhaar
+from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 
+from aadhaar_service import AadhaarService as aadhaar
 from core.dependencies import get_current_user
 from models import NurseProfile
+
+# 🔥 IMPORTANT: Explicit Tesseract path (SERVER FIX)
+pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+
 router = APIRouter(prefix="/adhar", tags=["adhar"])
 
+
+# ============================================================
+# 🔥 ROBUST AADHAAR OCR (DEBUG + FALLBACK INCLUDED)
+# ============================================================
 def extract_aadhaar_from_image(image_bytes):
     try:
+        # Convert bytes → numpy array
         nparr = np.frombuffer(image_bytes, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
@@ -25,14 +30,22 @@ def extract_aadhaar_from_image(image_bytes):
 
         h, w, _ = img.shape
 
-        # ---------- CROP BOTTOM CENTER (AADHAAR NUMBER ZONE) ----------
-        # Crop bottom 35% height and center 70% width
-        crop = img[int(h * 0.60): h, int(w * 0.15): int(w * 0.85)]
+        # ---------- AUTO-ROTATE IF NEEDED ----------
+        if h < w:  # landscape image fix
+            img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+            h, w, _ = img.shape
 
-        # ---------- PREPROCESS ----------
+        # ---------- SMART CROP (AADHAAR ZONE) ----------
+        crop = img[int(h * 0.55): h, int(w * 0.10): int(w * 0.90)]
+
+        # 🔥 DEBUG — Save images on server (CHECK THESE)
+        cv2.imwrite("/tmp/aadhaar_original.jpg", img)
+        cv2.imwrite("/tmp/aadhaar_crop.jpg", crop)
+
+        # ---------- PREPROCESSING (STRONG) ----------
         gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-        gray = cv2.equalizeHist(gray)
-        gray = cv2.medianBlur(gray, 3)
+        gray = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX)
+        gray = cv2.medianBlur(gray, 5)
 
         thresh = cv2.adaptiveThreshold(
             gray, 255,
@@ -41,25 +54,52 @@ def extract_aadhaar_from_image(image_bytes):
             15, 3
         )
 
-        custom_config = r"--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789"
+        # ---------- BEST TESSERACT CONFIG ----------
+        custom_config = r"""
+        --oem 3
+        --psm 6
+        -c tessedit_char_whitelist=0123456789
+        """
 
         text = pytesseract.image_to_string(thresh, config=custom_config)
 
-        print("OCR RAW:", text)
+        print("🔍 OCR RAW:\n", text)
 
-        text = re.sub(r"[^0-9]", "", text)
-        print("CLEAN DIGITS:", text)
+        # Keep only digits
+        digits = re.sub(r"[^0-9]", "", text)
+        print("🔢 CLEAN DIGITS:", digits)
 
-        match = re.search(r"\d{12}", text)
+        # Find 12-digit Aadhaar anywhere in string
+        match = re.search(r"\d{12}", digits)
+        if match:
+            return match.group()
+
+        # --------- FALLBACK: Try full image OCR if crop fails ---------
+        print("⚠️ Crop OCR failed, trying full image...")
+
+        full_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        full_text = pytesseract.image_to_string(
+            full_gray, config=custom_config
+        )
+
+        print("🔍 FULL IMAGE OCR:", full_text)
+
+        full_digits = re.sub(r"[^0-9]", "", full_text)
+        match = re.search(r"\d{12}", full_digits)
+
         if match:
             return match.group()
 
         return None
 
     except Exception as e:
-        print("OCR ERROR:", str(e))
+        print("❌ OCR ERROR:", str(e))
         return None
 
+
+# ============================================================
+# 🔹 EXTRACT AADHAAR API
+# ============================================================
 @router.post("/extract-aadhaar")
 async def extract_aadhaar(file: UploadFile = File(...)):
     contents = await file.read()
@@ -74,57 +114,55 @@ async def extract_aadhaar(file: UploadFile = File(...)):
         content={"message": "Aadhaar number not found"}
     )
 
+
+# ============================================================
+# 🔹 GENERATE OTP
+# ============================================================
 @router.post("/generate-otp")
 def generate(aadhaar_number: str):
     return aadhaar.generate_otp(aadhaar_number)
 
 
-from fastapi import HTTPException
-
+# ============================================================
+# 🔹 VERIFY OTP
+# ============================================================
 @router.post("/verify-otp")
-def verify(reference_id: str, otp: str, user = Depends(get_current_user)):
+def verify(reference_id: str, otp: str, user=Depends(get_current_user)):
     try:
         nurse = NurseProfile.objects.get(user=user)
         result = aadhaar.verify_otp(reference_id, otp)
 
-        # Agar API hi fail ho gayi
         if not result or "data" not in result:
-            raise HTTPException(status_code=500, detail="Invalid response from Aadhaar service")
+            raise HTTPException(
+                status_code=500,
+                detail="Invalid response from Aadhaar service"
+            )
 
         data = result.get("data", {})
 
-        # ========== ONLY VALID CASE (AS YOU SAID) ==========
+        # ===== ONLY VALID CASE =====
         if data.get("status") == "VALID":
-           
-            nurse.aadhaar_verified =True
+            nurse.aadhaar_verified = True
             nurse.aadharData = {
-                    "reference_id": data.get("reference_id"),
-                    "name": data.get("name"),
-                    "date_of_birth": data.get("date_of_birth"),
-                    "gender": data.get("gender"),
-                    "full_address": data.get("full_address"),
-                    "care_of": data.get("care_of"),
-                    "photo": data.get("photo"),  # base64 image
-                }
+                "reference_id": data.get("reference_id"),
+                "name": data.get("name"),
+                "date_of_birth": data.get("date_of_birth"),
+                "gender": data.get("gender"),
+                "full_address": data.get("full_address"),
+                "care_of": data.get("care_of"),
+                "photo": data.get("photo"),
+            }
             nurse.save()
+
             return {
                 "success": True,
                 "message": "Aadhaar Verified Successfully",
-                "data": {
-                    "reference_id": data.get("reference_id"),
-                    "name": data.get("name"),
-                    "date_of_birth": data.get("date_of_birth"),
-                    "gender": data.get("gender"),
-                    "full_address": data.get("full_address"),
-                    "care_of": data.get("care_of"),
-                    "photo": data.get("photo"),  # base64 image
-                },
+                "data": nurse.aadharData,
             }
 
-        # ========== ERROR CASE HANDLING ==========
+        # ===== ERROR CASES =====
         msg = data.get("message", "Verification failed")
 
-        # Map friendly error messages
         error_map = {
             "Invalid OTP": ("INVALID_OTP", "OTP is incorrect"),
             "OTP Expired": ("OTP_EXPIRED", "OTP has expired, please resend"),
@@ -132,7 +170,10 @@ def verify(reference_id: str, otp: str, user = Depends(get_current_user)):
                 "IN_PROGRESS",
                 "Please wait 30 seconds and try again",
             ),
-            "Invalid Reference Id": ("INVALID_REF_ID", "Session expired, please resend OTP"),
+            "Invalid Reference Id": (
+                "INVALID_REF_ID",
+                "Session expired, please resend OTP",
+            ),
         }
 
         code, message = error_map.get(msg, ("FAILED", msg))
@@ -142,6 +183,9 @@ def verify(reference_id: str, otp: str, user = Depends(get_current_user)):
             "error_code": code,
             "message": message,
         }
+
+    except NurseProfile.DoesNotExist:
+        raise HTTPException(status_code=404, detail="Nurse profile not found")
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
