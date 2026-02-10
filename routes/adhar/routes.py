@@ -23,19 +23,17 @@ def extract_aadhaar_from_image(image_bytes):
             print("❌ Image decode failed")
             return None
 
-        # ---------- STEP 1: Resize for better OCR ----------
-        img = cv2.resize(img, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+        h, w, _ = img.shape
 
-        # ---------- STEP 2: Grayscale ----------
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # ---------- CROP BOTTOM CENTER (AADHAAR NUMBER ZONE) ----------
+        # Crop bottom 35% height and center 70% width
+        crop = img[int(h * 0.60): h, int(w * 0.15): int(w * 0.85)]
 
-        # ---------- STEP 3: Contrast improve ----------
+        # ---------- PREPROCESS ----------
+        gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         gray = cv2.equalizeHist(gray)
-
-        # ---------- STEP 4: Noise reduction ----------
         gray = cv2.medianBlur(gray, 3)
 
-        # ---------- STEP 5: Adaptive threshold ----------
         thresh = cv2.adaptiveThreshold(
             gray, 255,
             cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
@@ -43,20 +41,16 @@ def extract_aadhaar_from_image(image_bytes):
             15, 3
         )
 
-        # ---------- STEP 6: BEST TESSERACT CONFIG FOR AADHAAR ----------
         custom_config = r"--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789"
 
         text = pytesseract.image_to_string(thresh, config=custom_config)
 
-        print("OCR TEXT RAW:\n", text)
+        print("OCR RAW:", text)
 
-        # ---------- STEP 7: Clean text ----------
-        text = re.sub(r"[^0-9]", "", text)  # keep only digits
+        text = re.sub(r"[^0-9]", "", text)
         print("CLEAN DIGITS:", text)
 
-        # Aadhaar can appear anywhere in string
         match = re.search(r"\d{12}", text)
-
         if match:
             return match.group()
 
