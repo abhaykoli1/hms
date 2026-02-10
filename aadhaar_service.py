@@ -9,7 +9,7 @@ BASE_URL = "https://api.sandbox.co.in"
 class AadhaarService:
 
     def __init__(self):
-        self.api_key = os.getenv("API_KEY")
+        self.api_key = "key_test_eb5f20fd9869467a8dffe81154ff1615"
 
     def _headers(self):
         token = token_manager.get_token()
