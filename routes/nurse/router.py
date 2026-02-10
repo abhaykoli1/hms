@@ -225,7 +225,7 @@ def nurse_self_signup(payload: NurseSelfSignupRequest):
 
 
 # 
-@router.get("/self-signup/me", response_model=NurseSelfSignupRequest)
+@router.get("/rzp_live_SBbgiyIPp35rea", response_model=NurseSelfSignupRequest)
 def get_my_profile(current_user: User = Depends(get_current_user)):
 
     nurse = NurseProfile.objects(user=current_user).first()

@@ -51,7 +51,7 @@ class NurseProfile(Document):
     aadhaar_back = StringField()
     aadhaar_number = StringField()
     aadhaar_verified = BooleanField(default=False)
-
+    aadharData = DictField(required=False)
     qualification_docs = ListField(StringField())
     experience_docs = ListField(StringField())
 
