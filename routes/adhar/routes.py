@@ -1,9 +1,6 @@
 import cv2
 from fastapi.responses import JSONResponse
 import pytesseract
-import pytesseract
-
-pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
 import re
 import numpy as np
@@ -15,31 +12,51 @@ from models import NurseProfile
 router = APIRouter(prefix="/adhar", tags=["adhar"])
 
 def extract_aadhaar_from_image(image_bytes):
-    # bytes → numpy array
-    nparr = np.frombuffer(image_bytes, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    try:
+        # Convert bytes → numpy array
+        nparr = np.frombuffer(image_bytes, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    # preprocessing
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (5, 5), 0)
+        if img is None:
+            print("❌ Image decode failed")
+            return None
 
-    thresh = cv2.adaptiveThreshold(
-        gray, 255,
-        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY, 11, 2
-    )
+        # ---------- BETTER PREPROCESSING ----------
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # OCR
-    text = pytesseract.image_to_string(thresh)
+        # increase contrast
+        gray = cv2.equalizeHist(gray)
 
-    # regex for 12 digit
-    pattern = r"\d{4}\s?\d{4}\s?\d{4}"
-    match = re.search(pattern, text)
+        # blur to remove noise
+        gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
-    if match:
-        return match.group().replace(" ", "")
-    return None
+        # adaptive threshold
+        thresh = cv2.adaptiveThreshold(
+            gray, 255,
+            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+            cv2.THRESH_BINARY,
+            11, 2
+        )
 
+        # ---------- BETTER TESSERACT CONFIG ----------
+        custom_config = r"--oem 3 --psm 6 digits"
+
+        text = pytesseract.image_to_string(thresh, config=custom_config)
+
+        print("OCR TEXT:", text)  # 🔥 IMPORTANT DEBUG LOG
+
+        # regex for 12 digit Aadhaar
+        pattern = r"\d{4}\s?\d{4}\s?\d{4}"
+        match = re.search(pattern, text)
+
+        if match:
+            return match.group().replace(" ", "")
+
+        return None
+
+    except Exception as e:
+        print("OCR ERROR:", str(e))
+        return None
 
 @router.post("/extract-aadhaar")
 async def extract_aadhaar(file: UploadFile = File(...)):
