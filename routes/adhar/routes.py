@@ -1,6 +1,9 @@
 import cv2
 from fastapi.responses import JSONResponse
 import pytesseract
+import pytesseract
+
+pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 
 import re
 import numpy as np
