@@ -14,120 +14,107 @@ from models import NurseProfile
 # ===========================
 # 🔥 TESSERACT CONFIG (AWS FIX)
 # ===========================
-pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
-os.environ["TESSDATA_PREFIX"] = "/usr/share/tesseract-ocr/5/tessdata/"
+
 
 router = APIRouter(prefix="/adhar", tags=["adhar"])
 
 
 # ============================================================
 # 🔥 ROBUST AADHAAR OCR (FINAL VERSION)
-# ============================================================
-def extract_aadhaar_from_image(image_bytes):
-    try:
-        # Convert bytes → numpy array
-        nparr = np.frombuffer(image_bytes, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        if img is None:
-            print("❌ Image decode failed")
+
+import os
+import re
+import requests
+
+def ocr_space_file(filename: str, overlay=False, api_key=None, language="eng"):
+    """
+    OCR.space API request with local file.
+    """
+
+    if not api_key:
+        api_key = "K84530418188957"
+
+    payload = {
+        "isOverlayRequired": overlay,
+        "apikey": api_key,
+        "language": language,
+    }
+
+    with open(filename, "rb") as f:
+        r = requests.post(
+            "https://api.ocr.space/parse/image",
+            files={"file": f},
+            data=payload,
+            timeout=30,
+        )
+
+    return r.json()
+
+
+def extract_aadhaar_from_ocr_result(ocr_result: dict) -> str | None:
+    """
+    Extract 12-digit Aadhaar from OCR result
+    """
+    try:
+        if "ParsedResults" not in ocr_result or not ocr_result["ParsedResults"]:
+            print("OCR API ERROR:", ocr_result)
             return None
 
-        h, w, _ = img.shape
+        text = ocr_result["ParsedResults"][0].get("ParsedText", "")
+        print("OCR TEXT:", text)
 
-        # ---------- AUTO ROTATE IF LANDSCAPE ----------
-        if w > h:
-            img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
-            h, w, _ = img.shape
-
-        # ===================================================
-        # ✅ NEW CROP (WORKS FOR YOUR SHARED AADHAAR IMAGE)
-        # Bottom 30% height + center 80% width
-        # ===================================================
-        crop = img[int(h * 0.70): h, int(w * 0.10): int(w * 0.90)]
-
-        # 🔥 DEBUG — save images on server (check these)
-        cv2.imwrite("/tmp/aadhaar_original.jpg", img)
-        cv2.imwrite("/tmp/aadhaar_crop.jpg", crop)
-
-        # ---------- PREPROCESSING (BEST FOR PRINTED NUMBERS) ----------
-        gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-
-        # Increase contrast
-        gray = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX)
-
-        # Smooth noise but keep edges
-        gray = cv2.GaussianBlur(gray, (5, 5), 0)
-
-        # Binarization (best for black printed digits)
-        _, thresh = cv2.threshold(
-            gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-        )
-
-        # Optional: upscale for better OCR accuracy
-        thresh = cv2.resize(thresh, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
-
-        # ---------- BEST TESSERACT CONFIG ----------
-        custom_config = r"""
-        --oem 3
-        --psm 6
-        -l eng+hin
-        -c tessedit_char_whitelist=0123456789
-        """
-
-        text = pytesseract.image_to_string(thresh, config=custom_config)
-        print("🔍 OCR RAW:\n", text)
-
-        # Keep only digits
         digits = re.sub(r"[^0-9]", "", text)
-        print("🔢 CLEAN DIGITS:", digits)
-
-        # Find 12-digit Aadhaar anywhere in string
         match = re.search(r"\d{12}", digits)
-        if match:
-            return match.group()
 
-        # --------- FALLBACK: Try full image OCR if crop fails ---------
-        print("⚠️ Crop OCR failed, trying full image...")
-
-        full_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        full_text = pytesseract.image_to_string(
-            full_gray, config=custom_config
-        )
-
-        print("🔍 FULL IMAGE OCR:", full_text)
-
-        full_digits = re.sub(r"[^0-9]", "", full_text)
-        match = re.search(r"\d{12}", full_digits)
-
-        if match:
-            return match.group()
-
-        return None
+        return match.group() if match else None
 
     except Exception as e:
-        print("❌ OCR ERROR:", str(e))
+        print("OCR PARSE ERROR:", str(e))
         return None
 
 
 # ============================================================
 # 🔹 EXTRACT AADHAAR API
 # ============================================================
+UPLOAD_TMP_DIR = "/tmp"
+
 @router.post("/extract-aadhaar")
 async def extract_aadhaar(file: UploadFile = File(...)):
-    contents = await file.read()
-    aadhaar_number = extract_aadhaar_from_image(contents)
+    # 1️⃣ Save uploaded file temporarily
+    file_path = os.path.join(UPLOAD_TMP_DIR, file.filename)
 
-    return {
-        "aadhaar_number": aadhaar_number,
-        "auto_detected": bool(aadhaar_number),
-        "message": (
-            "Aadhaar detected automatically"
-            if aadhaar_number
-            else "Could not auto-detect Aadhaar. Please enter manually."
-        ),
-    }
+    with open(file_path, "wb") as f:
+        f.write(await file.read())
 
+    print("Saved file to:", file_path)
+
+    # 2️⃣ Call OCR.Space
+    ocr_result = ocr_space_file(
+        filename=file_path,
+        language="eng",
+        api_key=os.getenv("OCR_API_KEY", "helloworld"),
+    )
+
+    # 3️⃣ Extract Aadhaar
+    aadhaar_number = extract_aadhaar_from_ocr_result(ocr_result)
+
+    # 4️⃣ Clean up temp file (optional)
+    try:
+        os.remove(file_path)
+    except:
+        pass
+
+    if aadhaar_number:
+        return {
+            "aadhaar_number": aadhaar_number,
+            "method": "ocr_space",
+        }
+
+    return JSONResponse(
+        status_code=404,
+        content={"message": "Aadhaar number not found"},
+    )
 
 # ============================================================
 # 🔹 GENERATE OTP
