@@ -1,15 +1,19 @@
+import os
 import cv2
-from fastapi.responses import JSONResponse
-import pytesseract
 import re
 import numpy as np
+import pytesseract
+
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
+from fastapi.responses import JSONResponse
 
 from aadhaar_service import AadhaarService as aadhaar
 from core.dependencies import get_current_user
 from models import NurseProfile
 
-import os
+# ===========================
+# 🔥 TESSERACT CONFIG (AWS FIX)
+# ===========================
 pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
 os.environ["TESSDATA_PREFIX"] = "/usr/share/tesseract-ocr/5/tessdata/"
 
@@ -17,10 +21,11 @@ router = APIRouter(prefix="/adhar", tags=["adhar"])
 
 
 # ============================================================
-# 🔥 ROBUST AADHAAR OCR (DEBUG + FALLBACK INCLUDED)
+# 🔥 ROBUST AADHAAR OCR (FINAL VERSION)
 # ============================================================
 def extract_aadhaar_from_image(image_bytes):
     try:
+        # Convert bytes → numpy array
         nparr = np.frombuffer(image_bytes, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
@@ -35,22 +40,34 @@ def extract_aadhaar_from_image(image_bytes):
             img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
             h, w, _ = img.shape
 
-        # ---------- WIDER CROP ----------
-        crop = img[int(h * 0.45): h, int(w * 0.05): int(w * 0.95)]
+        # ===================================================
+        # ✅ NEW CROP (WORKS FOR YOUR SHARED AADHAAR IMAGE)
+        # Bottom 30% height + center 80% width
+        # ===================================================
+        crop = img[int(h * 0.70): h, int(w * 0.10): int(w * 0.90)]
 
-        # ---------- PREPROCESS ----------
+        # 🔥 DEBUG — save images on server (check these)
+        cv2.imwrite("/tmp/aadhaar_original.jpg", img)
+        cv2.imwrite("/tmp/aadhaar_crop.jpg", crop)
+
+        # ---------- PREPROCESSING (BEST FOR PRINTED NUMBERS) ----------
         gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-        gray = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX)
-        gray = cv2.medianBlur(gray, 5)
 
-        thresh = cv2.adaptiveThreshold(
-            gray, 255,
-            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-            cv2.THRESH_BINARY_INV,
-            15, 3
+        # Increase contrast
+        gray = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX)
+
+        # Smooth noise but keep edges
+        gray = cv2.GaussianBlur(gray, (5, 5), 0)
+
+        # Binarization (best for black printed digits)
+        _, thresh = cv2.threshold(
+            gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
         )
 
-        # 🔥 **YAHAN PE CONFIG DALNI HAI**
+        # Optional: upscale for better OCR accuracy
+        thresh = cv2.resize(thresh, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+
+        # ---------- BEST TESSERACT CONFIG ----------
         custom_config = r"""
         --oem 3
         --psm 6
@@ -58,22 +75,38 @@ def extract_aadhaar_from_image(image_bytes):
         -c tessedit_char_whitelist=0123456789
         """
 
-        # 🔥 AB IS CONFIG KO USE KARNA HAI
         text = pytesseract.image_to_string(thresh, config=custom_config)
+        print("🔍 OCR RAW:\n", text)
 
-        print("OCR RAW:", text)
+        # Keep only digits
+        digits = re.sub(r"[^0-9]", "", text)
+        print("🔢 CLEAN DIGITS:", digits)
 
-        text = re.sub(r"[^0-9]", "", text)
-        print("CLEAN DIGITS:", text)
+        # Find 12-digit Aadhaar anywhere in string
+        match = re.search(r"\d{12}", digits)
+        if match:
+            return match.group()
 
-        match = re.search(r"\d{12}", text)
+        # --------- FALLBACK: Try full image OCR if crop fails ---------
+        print("⚠️ Crop OCR failed, trying full image...")
+
+        full_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        full_text = pytesseract.image_to_string(
+            full_gray, config=custom_config
+        )
+
+        print("🔍 FULL IMAGE OCR:", full_text)
+
+        full_digits = re.sub(r"[^0-9]", "", full_text)
+        match = re.search(r"\d{12}", full_digits)
+
         if match:
             return match.group()
 
         return None
 
     except Exception as e:
-        print("OCR ERROR:", str(e))
+        print("❌ OCR ERROR:", str(e))
         return None
 
 
@@ -83,16 +116,17 @@ def extract_aadhaar_from_image(image_bytes):
 @router.post("/extract-aadhaar")
 async def extract_aadhaar(file: UploadFile = File(...)):
     contents = await file.read()
-
     aadhaar_number = extract_aadhaar_from_image(contents)
 
-    if aadhaar_number:
-        return {"aadhaar_number": aadhaar_number}
-
-    return JSONResponse(
-        status_code=404,
-        content={"message": "Aadhaar number not found"}
-    )
+    return {
+        "aadhaar_number": aadhaar_number,
+        "auto_detected": bool(aadhaar_number),
+        "message": (
+            "Aadhaar detected automatically"
+            if aadhaar_number
+            else "Could not auto-detect Aadhaar. Please enter manually."
+        ),
+    }
 
 
 # ============================================================
