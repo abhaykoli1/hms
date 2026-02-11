@@ -9,8 +9,9 @@ from aadhaar_service import AadhaarService as aadhaar
 from core.dependencies import get_current_user
 from models import NurseProfile
 
-# 🔥 IMPORTANT: Explicit Tesseract path (SERVER FIX)
+import os
 pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+os.environ["TESSDATA_PREFIX"] = "/usr/share/tesseract-ocr/5/tessdata/"
 
 router = APIRouter(prefix="/adhar", tags=["adhar"])
 
