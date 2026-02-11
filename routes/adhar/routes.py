@@ -21,7 +21,6 @@ router = APIRouter(prefix="/adhar", tags=["adhar"])
 # ============================================================
 def extract_aadhaar_from_image(image_bytes):
     try:
-        # Convert bytes → numpy array
         nparr = np.frombuffer(image_bytes, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
@@ -31,19 +30,15 @@ def extract_aadhaar_from_image(image_bytes):
 
         h, w, _ = img.shape
 
-        # ---------- AUTO-ROTATE IF NEEDED ----------
-        if h < w:  # landscape image fix
+        # ---------- AUTO ROTATE IF LANDSCAPE ----------
+        if w > h:
             img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
             h, w, _ = img.shape
 
-        # ---------- SMART CROP (AADHAAR ZONE) ----------
-        crop = img[int(h * 0.55): h, int(w * 0.10): int(w * 0.90)]
+        # ---------- WIDER CROP ----------
+        crop = img[int(h * 0.45): h, int(w * 0.05): int(w * 0.95)]
 
-        # 🔥 DEBUG — Save images on server (CHECK THESE)
-        cv2.imwrite("/tmp/aadhaar_original.jpg", img)
-        cv2.imwrite("/tmp/aadhaar_crop.jpg", crop)
-
-        # ---------- PREPROCESSING (STRONG) ----------
+        # ---------- PREPROCESS ----------
         gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
         gray = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX)
         gray = cv2.medianBlur(gray, 5)
@@ -55,46 +50,30 @@ def extract_aadhaar_from_image(image_bytes):
             15, 3
         )
 
-        # ---------- BEST TESSERACT CONFIG ----------
+        # 🔥 **YAHAN PE CONFIG DALNI HAI**
         custom_config = r"""
         --oem 3
         --psm 6
+        -l eng+hin
         -c tessedit_char_whitelist=0123456789
         """
 
+        # 🔥 AB IS CONFIG KO USE KARNA HAI
         text = pytesseract.image_to_string(thresh, config=custom_config)
 
-        print("🔍 OCR RAW:\n", text)
+        print("OCR RAW:", text)
 
-        # Keep only digits
-        digits = re.sub(r"[^0-9]", "", text)
-        print("🔢 CLEAN DIGITS:", digits)
+        text = re.sub(r"[^0-9]", "", text)
+        print("CLEAN DIGITS:", text)
 
-        # Find 12-digit Aadhaar anywhere in string
-        match = re.search(r"\d{12}", digits)
-        if match:
-            return match.group()
-
-        # --------- FALLBACK: Try full image OCR if crop fails ---------
-        print("⚠️ Crop OCR failed, trying full image...")
-
-        full_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        full_text = pytesseract.image_to_string(
-            full_gray, config=custom_config
-        )
-
-        print("🔍 FULL IMAGE OCR:", full_text)
-
-        full_digits = re.sub(r"[^0-9]", "", full_text)
-        match = re.search(r"\d{12}", full_digits)
-
+        match = re.search(r"\d{12}", text)
         if match:
             return match.group()
 
         return None
 
     except Exception as e:
-        print("❌ OCR ERROR:", str(e))
+        print("OCR ERROR:", str(e))
         return None
 
 
