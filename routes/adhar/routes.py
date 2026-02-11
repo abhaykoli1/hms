@@ -8,7 +8,8 @@ import pytesseract
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
-from aadhaar_service import AadhaarService as aadhaar
+from aadhaar_service import AadhaarService
+aadhaar = AadhaarService() 
 from core.dependencies import get_current_user
 from models import NurseProfile
 
