@@ -2,6 +2,7 @@ import os
 import cv2
 import re
 import numpy as np
+from pydantic import BaseModel
 import pytesseract
 
 from fastapi import APIRouter, UploadFile, File, Depends, HTTPException
@@ -119,19 +120,32 @@ async def extract_aadhaar(file: UploadFile = File(...)):
 # ============================================================
 # 🔹 GENERATE OTP
 # ============================================================
+
+class AadhaarOtpRequest(BaseModel):
+    aadhaar_number: str
 @router.post("/generate-otp")
-def generate(aadhaar_number: str):
-    return aadhaar.generate_otp(aadhaar_number)
+def generate(payload: AadhaarOtpRequest):
+    return aadhaar.generate_otp(payload.aadhaar_number)
 
 
 # ============================================================
 # 🔹 VERIFY OTP
 # ============================================================
+class AadhaarVerifyRequest(BaseModel):
+    reference_id: str
+    otp: str
 @router.post("/verify-otp")
-def verify(reference_id: str, otp: str, user=Depends(get_current_user)):
+def verify(
+    payload: AadhaarVerifyRequest,
+    user=Depends(get_current_user)
+):
     try:
         nurse = NurseProfile.objects.get(user=user)
-        result = aadhaar.verify_otp(reference_id, otp)
+
+        result = aadhaar.verify_otp(
+            payload.reference_id,
+            payload.otp
+        )
 
         if not result or "data" not in result:
             raise HTTPException(
