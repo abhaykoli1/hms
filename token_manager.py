@@ -9,7 +9,7 @@ load_dotenv()
 class TokenManager:
     def __init__(self):
         self.api_key = "key_test_eb5f20fd9869467a8dffe81154ff1615"
-        self.api_secret = "ecret_test_7c8e6321df034a3499b1758a94c7da77"
+        self.api_secret = "secret_test_7c8e6321df034a3499b1758a94c7da77"
 
         self.base_url = "https://api.sandbox.co.in/authenticate"
 
@@ -51,3 +51,4 @@ class TokenManager:
 
 # global instance (singleton style)
 token_manager = TokenManager()
+
