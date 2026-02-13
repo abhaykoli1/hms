@@ -10,6 +10,7 @@ class AadhaarService:
 
     def __init__(self):
         self.api_key = "key_live_596d1cc1a8ec4cf4972d2a3847649041"
+        self.api_secret = "secret_live_fdab340fc4704fd2bb18295563b158cc"
 
     def _headers(self):
         token = token_manager.get_token()
