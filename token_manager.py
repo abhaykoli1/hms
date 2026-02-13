@@ -8,8 +8,8 @@ load_dotenv()
 
 class TokenManager:
     def __init__(self):
-        self.api_key = "key_test_eb5f20fd9869467a8dffe81154ff1615"
-        self.api_secret = "secret_test_7c8e6321df034a3499b1758a94c7da77"
+        self.api_key = "key_live_596d1cc1a8ec4cf4972d2a3847649041"
+        self.api_secret = "secret_live_fdab340fc4704fd2bb18295563b158cc"
 
         self.base_url = "https://api.sandbox.co.in/authenticate"
 
