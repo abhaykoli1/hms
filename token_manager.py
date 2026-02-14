@@ -27,7 +27,7 @@ class TokenManager:
         headers = {
             "x-api-key": self.api_key,
             "x-api-secret": self.api_secret,
-            "x-api-version": "1.0.0",
+            "x-api-version": "1.0",
             "Content-Type": "application/json",
         }
 

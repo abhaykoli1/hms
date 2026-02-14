@@ -1,4 +1,5 @@
 import os
+from bson import ObjectId
 import cv2
 import re
 import numpy as np
@@ -11,7 +12,7 @@ from fastapi.responses import JSONResponse
 from aadhaar_service import AadhaarService
 aadhaar = AadhaarService() 
 from core.dependencies import get_current_user
-from models import NurseProfile
+from models import NurseProfile, User
 
 # ===========================
 # 🔥 TESSERACT CONFIG (AWS FIX)
@@ -133,15 +134,16 @@ def generate(payload: AadhaarOtpRequest):
 # 🔹 VERIFY OTP
 # ============================================================
 class AadhaarVerifyRequest(BaseModel):
+    user_id: str
     reference_id: str
     otp: str
 @router.post("/verify-otp")
 def verify(
     payload: AadhaarVerifyRequest,
-    user=Depends(get_current_user)
+    
 ):
     try:
-        nurse = NurseProfile.objects.get(user=user)
+        nurse = NurseProfile.objects.get(user=User.objects.get(id=ObjectId(payload.user_id)))
 
         result = aadhaar.verify_otp(
             payload.reference_id,

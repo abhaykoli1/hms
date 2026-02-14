@@ -18,6 +18,7 @@ class AadhaarService:
         return {
             "Authorization": token,
             "x-api-key": self.api_key,
+            'x-api-version': '1.0',
             "Content-Type": "application/json"
         }
 
@@ -27,14 +28,17 @@ class AadhaarService:
         url = f"{BASE_URL}/kyc/aadhaar/okyc/otp"
 
         payload = {
-            "entity": "in.co.sandbox.kyc.aadhaar.okyc.otp.request",
-            "aadhaar_number": aadhaar_number,
+            "@entity": "in.co.sandbox.kyc.aadhaar.okyc.otp.request",
+            "aadhaar_number": "436720615975",
             "consent": "Y",
             "reason": reason
         }
+        print(payload)
 
         res = requests.post(url, headers=self._headers(), json=payload)
-
+        print("Status Code:", res.status_code)
+        print("Raw Response:", res.text)      # pura raw response
+        print("JSON Response:", res.json())
         return res.json()
 
     # 🔥 STEP 2 → Verify OTP
@@ -43,7 +47,7 @@ class AadhaarService:
         url = f"{BASE_URL}/kyc/aadhaar/okyc/otp/verify"
 
         payload = {
-            "entity": "in.co.sandbox.kyc.aadhaar.okyc.request",
+            "@entity": "in.co.sandbox.kyc.aadhaar.okyc.request",
             "reference_id": reference_id,
             "otp": otp
         }
