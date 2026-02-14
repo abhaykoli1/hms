@@ -29,7 +29,7 @@ class AadhaarService:
 
         payload = {
             "@entity": "in.co.sandbox.kyc.aadhaar.okyc.otp.request",
-            "aadhaar_number": "436720615975",
+            "aadhaar_number": aadhaar_number,
             "consent": "Y",
             "reason": reason
         }
