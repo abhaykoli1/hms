@@ -1,6 +1,9 @@
 import os
+from typing import List
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from datetime import date, datetime
+
+from pymongo.auth import Optional
 from core.dependencies import admin_required, get_current_user
 from models import HospitalModel, NurseProfile, NurseDuty, NurseSalary, NurseConsent, NurseVisit, PatientProfile
 from routes.auth.schemas import NurseVisitCreate, SignatureUpdateSchema
@@ -209,21 +212,30 @@ def send_account_approved_email(to_email: str, username: str = "User") -> bool:
 
     return send_email(to_email, subject, body, is_html=True)
 
+
+
 @router.post("/{nurse_id}/update")
 def update_nurse_admin(
     nurse_id: str,
     aadhaar_verified: str = Form("false"),
-    police_verification_status: str = Form(...),
-    nurse_type: str = Form(...),
+    police_verification_status: str | None = Form(None),
+    nurse_type: str | None = Form(None),
+    salary_type: str | None = Form(None),
+    payment_mode: str | None = Form(None),  
     joining_date: str | None = Form(None),
     resignation_date: str | None = Form(None),
     is_active: str = Form("false"),
-    salary_type: str = Form(...),
-    salary_amount: float = Form(...),
-    payment_mode: str = Form(...),
-    salary_date: int = Form(...),
+    # salary_type: str = Form(...),
+    # salary_amount: float = Form(...),
+    # salary_date: int = Form(...),
+    experience_letter: str | None = Form(None),
+    paySlip : Optional[List[str]] = Form(None),
+    salary_amount: float | None = Form(None),
+    salary_date: int | None = Form(None),
+    # payment_mode: str = Form(...),
     digital_signature_verify: bool = Form(False),
-    hospital: str | None = Form(None)
+    police: Optional[List[str]] = Form(None),  # ✅ FIXED
+    hospital: str | None = Form(None),
 ):
     nurse = NurseProfile.objects(id=nurse_id).first()
     if not nurse:
@@ -236,6 +248,25 @@ def update_nurse_admin(
     nurse.joining_date = date.fromisoformat(joining_date) if joining_date else None
     nurse.resignation_date = date.fromisoformat(resignation_date) if resignation_date else None
     nurse.digital_signature_verify = digital_signature_verify
+    # Experience letter (single file)
+    if experience_letter:
+        nurse.experience_letter = experience_letter
+
+# PaySlip (multiple files)
+    if paySlip:
+        if isinstance(paySlip, list):
+            nurse.paySlip = list(set(paySlip))
+        elif isinstance(paySlip, str):
+            nurse.paySlip = [paySlip]
+
+    # ✅ POLICE SAFE CHECK
+    if police:
+        if isinstance(police, list):
+            nurse.police = list(set(police))
+        elif isinstance(police, str):
+            nurse.police = [police]
+    else:
+        nurse.police = []
 
     nurse.save()
 
@@ -243,7 +274,6 @@ def update_nurse_admin(
     if nurse.user:
         nurse.user.is_active = is_active == "true"
 
-        # ✅ HOSPITAL FIX
         if hospital:
             nurse.user.hospital = HospitalModel.objects(id=hospital).first()
         else:
@@ -251,7 +281,7 @@ def update_nurse_admin(
 
         nurse.user.save()
 
-    # ✅ CONSENT
+    # ✅ CONSENT UPDATE
     consent = NurseConsent.objects(nurse=nurse).order_by("-created_at").first()
     if not consent:
         consent = NurseConsent(
@@ -267,7 +297,10 @@ def update_nurse_admin(
     consent.salary_date = salary_date
     consent.save()
 
-    return {"success": True}
+    return {
+        "success": True,
+        "police_received": nurse.police  # debug ke liye
+    }
 
 
 @router.put("/signature/{nurse_id}")

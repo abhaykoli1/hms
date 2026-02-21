@@ -3,7 +3,7 @@ from core.paths import BASE_DIR
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from fastapi.responses import FileResponse
 from core.dependencies import admin_required, get_current_user
-from models import BillItem, PatientInvoice, PatientMedication, PatientProfile, PatientBill, PatientVitals
+from models import BillItem, NurseDuty, PatientInvoice, PatientMedication, PatientProfile, PatientBill, PatientVitals, UserEquipmentRequest
 from datetime import datetime
 
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Image
@@ -611,6 +611,7 @@ def generate_invoice_no():
 # =====================================================
 # GENERATE BILL
 # =====================================================
+
 @router.post("/admin/billing/generate")
 async def generate_bill(
     request: Request,
@@ -627,9 +628,6 @@ async def generate_bill(
         raise HTTPException(404, "Patient not found")
 
     items = []
-
-    # 🔥 IMPORTANT
-    # subtotal = FINAL row total (GST included)
     sub_total = 0
 
     # =================================================
@@ -656,9 +654,84 @@ async def generate_bill(
         )
 
         items.append(item)
-
-        # ✅ subtotal = final price only
         sub_total += base_total
+
+    # =================================================
+    # 👩‍⚕️ NURSE DUTY (Using is_active)
+    # =================================================
+    duties = NurseDuty.objects(
+        patient=patient,
+        is_active=True
+    )
+
+    for duty in duties:
+
+        if not duty.price_perday:
+            continue
+
+        days = duty.duration_days or 1
+        unit_price = duty.price_perday
+        base_total = days * unit_price
+
+        nurse_name = (
+            duty.nurse.user.name
+            if duty.nurse and duty.nurse.user
+            else "Nurse"
+        )
+
+        item = BillItem(
+            title=f"Nurse Duty ({nurse_name}) - {duty.duty_type}",
+            quantity=days,
+            unit_price=unit_price,
+            base_total=base_total,
+            gst_percent=0,
+            gst_amount=0,
+            total_price=base_total,
+            start_date=duty.duty_start.date() if duty.duty_start else None,
+            till_date=duty.duty_end.date() if duty.duty_end else None,
+            days=days
+        )
+
+        items.append(item)
+        sub_total += base_total
+
+        # 🔥 Prevent duplicate billing
+        duty.update(is_active=False)
+
+    # =================================================
+    # 🏥 EQUIPMENT (Using status)
+    # =================================================
+    equipment_requests = UserEquipmentRequest.objects(
+        patient=patient,
+        status=True
+    )
+
+    for req in equipment_requests:
+
+        equipment = req.equipment
+
+        if not equipment or not equipment.price:
+            continue
+
+        qty = 1
+        unit_price = equipment.price
+        base_total = qty * unit_price
+
+        item = BillItem(
+            title=f"Equipment: {equipment.title}",
+            quantity=qty,
+            unit_price=unit_price,
+            base_total=base_total,
+            gst_percent=0,
+            gst_amount=0,
+            total_price=base_total,
+        )
+
+        items.append(item)
+        sub_total += base_total
+
+        # 🔥 Prevent duplicate billing
+        req.update(status=False)
 
     # =================================================
     # 🧾 OTHER ITEMS
@@ -680,16 +753,12 @@ async def generate_bill(
             if i.get("till_date") else None
         )
 
-        # ---------- BASE ----------
         if days:
             base_total = days * qty * unit_price
         else:
             base_total = qty * unit_price
 
-        # ---------- GST ----------
         gst_amount = base_total * gst_percent / 100
-
-        # ---------- FINAL ----------
         total_price = base_total + gst_amount
 
         item = BillItem(
@@ -706,8 +775,6 @@ async def generate_bill(
         )
 
         items.append(item)
-
-        # ✅ MAIN FIX
         sub_total += total_price
 
     # =================================================
@@ -721,7 +788,7 @@ async def generate_bill(
     bill = PatientBill(
         patient=patient,
         items=items,
-        sub_total=sub_total,   # 🔥 GST included
+        sub_total=sub_total,
         discount=discount,
         extra_charges=extra,
         grand_total=grand_total,
@@ -731,11 +798,11 @@ async def generate_bill(
     )
 
     bill.save()
-    # ===============================
-# CREATE INVOICE ENTRY
-# ===============================
 
-    invoice_no = generate_invoice_no()
+    # =================================================
+    # 🧾 CREATE INVOICE
+    # =================================================
+    invoice_no = "INV-" + datetime.utcnow().strftime("%Y%m%d%H%M%S")
 
     invoice = PatientInvoice(
         patient=patient,
@@ -751,11 +818,10 @@ async def generate_bill(
     return {
         "message": "Bill generated successfully",
         "bill_id": str(bill.id),
+        "invoice_no": invoice_no,
         "sub_total": sub_total,
         "grand_total": grand_total
     }
-
-
 # @router.post("/admin/billing/generate")
 # async def generate_bill(
 #     request: Request,

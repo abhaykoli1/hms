@@ -215,9 +215,21 @@
       <textarea id="address" class="form-control"></textarea>
     </div>
 
-    <div class="col-md-2">
+    <!-- Duration -->
+    <div class="col-md-3">
+      <label>Duration (Days)</label>
+      <input type="number" id="duration_days" class="form-control" placeholder="e.g. 5">
+    </div>
+
+    <!-- Price Per Day -->
+    <div class="col-md-3">
+      <label>Price Per Day</label>
+      <input type="number" step="0.01" id="price_perday" class="form-control" placeholder="e.g. 1200">
+    </div>
+
+    <div class="col-md-2 ">
       <button
-        class="bg-success text-white px-3 py-2 rounded-xl hover:scale-105"
+        class="bg-success mt-4 text-white px-3 py-2 rounded-xl hover:scale-105"
         id="assignBtn">
         Assign
       </button>
@@ -269,17 +281,23 @@
   document.getElementById("assignBtn").addEventListener("click", async () => {
 
   const dutyLocation = document.getElementById("dutyLocation").value;
-
+  const duration = parseInt(document.getElementById("duration_days").value) || 0;
+const pricePerDay = parseFloat(document.getElementById("price_perday").value) || 0;
+ const startDate = new Date();
+const endDate = new Date();
+endDate.setDate(startDate.getDate() + duration);
   const payload = {
-    nurse_id: nurse.value,
-    duty_type: duty_type.value,
-    shift: shift.value,
-    dutyLocation: dutyLocation,
+  nurse_id: nurse.value,
+  duty_type: duty_type.value,
+  shift: shift.value,
+  dutyLocation: dutyLocation,
 
-    duty_start: new Date().toISOString(),
-    duty_end: new Date(Date.now() + 12 * 60 * 60 * 1000).toISOString(),
-  };
+  duration_days: duration,
+  price_perday: pricePerDay,
 
+  duty_start: startDate.toISOString(),
+  duty_end: endDate.toISOString(),
+};
   // 🏥 Hospital
   if (dutyLocation === "HOSPITAL") {
     payload.ward = ward.value || null;

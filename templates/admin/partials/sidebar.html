@@ -60,7 +60,16 @@
       </div>
       <span class="text-lg">›</span>
     </a>
-
+   <a
+      href="/admin/caretacker"
+      class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == '/admin/caretacker' %} bg-blue-200/50  text-sky-600 shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-sky-600 {% endif %}"
+    >
+      <div class="flex items-center gap-3 text-lg">
+        <i data-lucide="stethoscope" class="w-5 h-5"></i>
+        <span class="text-[15px]">Caretacker</span>
+      </div>
+      <span class="text-lg">›</span>
+    </a>
     <!-- Self Registered Nurses -->
     <a
       href="/admin/nurses/self"
@@ -200,6 +209,7 @@
       </div>
       <span class="text-lg">›</span>
     </a>
+    
 
     <!-- Self Registered Nurses -->
     <a

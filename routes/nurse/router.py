@@ -1671,6 +1671,8 @@ def my_nurse_profile(current_user=Depends(get_current_user), month: str = None):
             "experience_docs": [with_domain(p) for p in nurse.experience_docs],
               # ✅ NEW FIELDS ADDED
             "digital_signature": with_domain(nurse.digital_signature),
+            "experience_files": with_domain(nurse.experience_letter),
+            "payslips": [with_domain(p) for p in nurse.payslips]
         },
 
         "kpi": {

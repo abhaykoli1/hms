@@ -30,6 +30,7 @@ class User(Document):
     token = StringField(required=True, default="No_token")
     created_at = DateTimeField(default=datetime.utcnow)
     hospital = ReferenceField(HospitalModel, required=False)
+    police_verification_file = StringField(required=False)
 
 class AboutUs(Document):
     name = StringField()
@@ -104,6 +105,8 @@ class NurseDuty(Document):
     check_in = DateTimeField()
     check_out = DateTimeField()
     gps_location = PointField()
+    duration_days = IntField()
+    price_perday = FloatField()
     is_active = BooleanField(default=True)
     
     
@@ -143,6 +146,8 @@ class NurseConsent(Document):
         choices=["DAILY", "MONTHLY"],
         required=True
     )
+    experience_letter = StringField(required=False)
+    paySlip = ListField(StringField(), default=list)
     salary_amount = FloatField(required=True)
     payment_mode = StringField(
         choices=["CASH", "BANK", "UPI"],
@@ -533,6 +538,7 @@ class PatientBill(Document):
 class EquipmentTable(Document):
     title = StringField(required=True)
     image = StringField(required=True)
+    price = FloatField(default=0 , required=False)
 
 
 class UserEquipmentRequest(Document):

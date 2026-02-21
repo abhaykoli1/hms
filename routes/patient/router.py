@@ -506,7 +506,7 @@ def assign_nurse_duty(patient_id: str, payload: dict):
     ).update(set__is_active=False)
 
     duty_location = payload.get("dutyLocation")  # HOME / HOSPITAL
-
+    
     duty = NurseDuty(
         patient=patient,
         nurse=nurse,
@@ -524,7 +524,8 @@ def assign_nurse_duty(patient_id: str, payload: dict):
 
         duty_start=datetime.fromisoformat(payload.get("duty_start")),
         duty_end=datetime.fromisoformat(payload.get("duty_end")),
-
+        duration_days=payload.get("duration_days", 0),
+        price_perday=payload.get("price_perday", 0.0),
         check_in=None,
         check_out=None,
         is_active=True,
@@ -947,6 +948,7 @@ def get_all_equipment():
         {
             "id": str(e.id),
             "title": e.title,
+            "price": e.price,
             "image": e.image
         }
         for e in equipments
@@ -959,13 +961,15 @@ def create_equipment(payload: EquipmentCreate):
 
     equipment = EquipmentTable(
         title=payload.title,
-        image=payload.image
+        image=payload.image,
+        price=payload.price
     ).save()
 
     return {
         "message": "Equipment created successfully",
         "id": str(equipment.id)
     }
+
 
 @equipment_router.get("/equipment-get/{equipment_id}")
 def get_single_equipment(equipment_id: str):
@@ -991,6 +995,9 @@ def update_equipment(equipment_id: str, payload: EquipmentUpdate):
 
     if payload.title is not None:
         equipment.title = payload.title
+    
+    if payload.price is not None:
+        equipment.price = payload.price  
 
     if payload.image is not None:
         equipment.image = payload.image

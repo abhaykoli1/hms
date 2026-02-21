@@ -29,3 +29,38 @@ def get_hospitals():
         }
         for h in hospitals
     ]
+
+
+@router.get("/get/{hospital_id}", response_model=HospitalResponse)
+def get_single_hospital(hospital_id: str):
+    hospital = HospitalModel.objects(id=hospital_id).first()
+
+    if not hospital:
+        raise HTTPException(status_code=404, detail="Hospital not found")
+
+    return {
+        "id": str(hospital.id),
+        "name": hospital.name,
+        "address": hospital.address,
+        "branch": hospital.branch
+    }
+
+
+@router.put("/update/{hospital_id}", response_model=HospitalResponse)
+def update_hospital(hospital_id: str, payload: HospitalCreate):
+    hospital = HospitalModel.objects(id=hospital_id).first()
+
+    if not hospital:
+        raise HTTPException(status_code=404, detail="Hospital not found")
+
+    hospital.name = payload.name
+    hospital.address = payload.address
+    hospital.branch = payload.branch
+    hospital.save()
+
+    return {
+        "id": str(hospital.id),
+        "name": hospital.name,
+        "address": hospital.address,
+        "branch": hospital.branch
+    }

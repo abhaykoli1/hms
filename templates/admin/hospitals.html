@@ -2,7 +2,6 @@
 %} {% block content %}
 
 <div class="bg-card border border-gray-50/20 rounded-2xl shadow-soft4">
-
   <div class="d-flex p-3 justify-content-between align-items-center">
     <h5 class="mb-0 text-md">Hospitals</h5>
     <div class="d-flex gap-2">
@@ -26,6 +25,7 @@
           <th class="px-3 py-2.5">Name</th>
           <th class="px-3 py-2.5">Address</th>
           <th class="px-3 py-2.5">Branch</th>
+          <th class="px-3 py-2.5">Action</th>
         </tr>
       </thead>
 
@@ -55,6 +55,31 @@
       <button onclick="closeCreateModal()" class="btn-gray">Cancel</button>
 
       <button onclick="createHospital()" class="btn-primary">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- =============== EDIT MODAL ===================== -->
+
+
+<div
+  id="editModal"
+  class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50"
+>
+  <div class="bg-white rounded-2xl w-[420px] p-6 shadow-xl">
+    <h5 class="mb-4">Edit Hospital</h5>
+
+    <input type="hidden" id="edit_id" />
+
+    <input class="input" id="edit_name" placeholder="Hospital Name" />
+    <input class="input" id="edit_address" placeholder="Address" />
+    <input class="input mb-4" id="edit_branch" placeholder="Branch" />
+
+    <div class="flex justify-end gap-2">
+      <button onclick="closeEditModal()" class="btn-gray">Cancel</button>
+      <button onclick="updateHospital()" class="btn-primary">
+        Update
+      </button>
     </div>
   </div>
 </div>
@@ -104,14 +129,19 @@
     table.innerHTML = "";
 
     data.forEach((h) => {
-      table.innerHTML += `
-      <tr class="hover:bg-gray-50 ">
-        <td class="px-3 py-2.5 font-medium">${h.name}</td>
-        <td class="px-3 py-2.5">${h.address}</td>
-        <td class="px-3 py-2.5">${h.branch}</td>
-      </tr>
-    `;
-    });
+  table.innerHTML += `
+  <tr class="hover:bg-gray-50">
+    <td class="px-3 py-2.5 font-medium">${h.name}</td>
+    <td class="px-3 py-2.5">${h.address}</td>
+    <td class="px-3 py-2.5">${h.branch}</td>
+    <td class="px-3 py-2.5">
+      <button onclick="openEditModal('${h.id}')" class="btn-primary">
+        Edit
+      </button>
+    </td>
+  </tr>
+  `;
+});
   }
 
   /* =========================
@@ -140,6 +170,47 @@
       alert("Failed to create hospital");
     }
   }
+
+  async function updateHospital() {
+  const id = edit_id.value;
+
+  const payload = {
+    name: edit_name.value,
+    address: edit_address.value,
+    branch: edit_branch.value,
+  };
+
+  const res = await fetch(`/hospital/update/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (res.ok) {
+    closeEditModal();
+    loadHospitals();
+  } else {
+    alert("Failed to update hospital");
+  }
+}
+  async function openEditModal(id) {
+  const res = await fetch(`/hospital/get/${id}`);
+  const data = await res.json();
+
+  edit_id.value = data.id;
+  edit_name.value = data.name;
+  edit_address.value = data.address;
+  edit_branch.value = data.branch;
+
+  editModal.classList.remove("hidden");
+  editModal.classList.add("flex");
+}
+
+function closeEditModal() {
+  editModal.classList.add("hidden");
+}
 
   /* =========================
    MODAL CONTROLS
