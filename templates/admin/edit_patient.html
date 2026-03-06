@@ -146,7 +146,32 @@
         {% endfor %}
       </select>
     </div>
+    <div class="col-md-3">
+      <label>City</label>
+      <input id="edit_city" class="form-control" value="{{ patient.city or '' }}">
+    </div>
+    
+    <div class="col-md-3">
+      <label>State</label>
+      <input id="edit_state" class="form-control" value="{{ patient.state or '' }}">
+    </div>
+    
+    <div class="col-md-3">
+      <label>Pincode</label>
+      <input id="edit_pincode" class="form-control" value="{{ patient.pincode or '' }}">
+    </div>
   </div>
+
+  <!-- <div class="col-md-3">
+  <label>Aadhar Card</label>
+  <input id="edit_adharcard" class="form-control" value="{{ patient.adharcard or '' }}">
+</div> -->
+
+
+<!-- <div class="col-md-6">
+  <label>Documents (comma separated URLs)</label>
+  <textarea id="edit_documents" class="form-control">{{ patient.documents | join(',') }}</textarea>
+</div> -->
 
   <div class="text- mt-3">
     <button class="- bg-success text-white text-md px-3 py-1.5 hover:scale-105  rounded-xl" onclick="updatePatient()"> Update Patient</button>
@@ -249,35 +274,50 @@
     };
   }
 
-  async function updatePatient() {
-    const payload = {
-      name: edit_name.value,
-      phone: edit_phone.value,
-      other_number: edit_other_number.value || null,
-      email: edit_email.value || null,
-      age: edit_age.value || null,
-      gender: edit_gender.value || null,
-      medical_history: edit_medical_history.value || null,
-      address: edit_address.value || null,
-      service_start: edit_service_start.value || null,
-      service_end: edit_service_end.value || null,
-      hospital: edit_hospital.value || null,
-      assigned_doctor: edit_doctor.value || null,
-    };
+async function updatePatient() {
+  const payload = {
+    name: edit_name.value || null,
+    phone: edit_phone.value || null,
+    other_number: edit_other_number.value || null,
+    email: edit_email.value || null,
 
-    const res = await fetch(`/patient/${patientId}/edit`, {
-      method: "PUT",
-      headers: headers(),
-      body: JSON.stringify(payload),
-    });
+    age: edit_age.value || null,
+    gender: edit_gender.value || null,
+    medical_history: edit_medical_history.value || null,
+    address: edit_address.value || null,
 
-    const data = await res.json();
-    if (!res.ok) return alert(data.detail || "Update failed");
+    service_start: edit_service_start.value || null,
+    service_end: edit_service_end.value || null,
 
-    alert("✅ Patient updated successfully");
-    location.reload();
+    hospital: edit_hospital.value || null,
+    assigned_doctor: edit_doctor.value || null,
+
+    // adharcard: edit_adharcard.value || null,
+    city: edit_city.value || null,
+    state: edit_state.value || null,
+    pincode: edit_pincode.value || null,
+
+    // documents: edit_documents.value
+    //   ? edit_documents.value.split(",").map(d => d.trim())
+    //   : null
+  };
+
+  const res = await fetch(`/patient/${patientId}/edit`, {
+    method: "PUT",
+    headers: headers(),
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.detail || "Update failed");
+    return;
   }
 
+  alert("✅ Patient updated successfully");
+  location.reload();
+}
   document.getElementById("assignBtn").addEventListener("click", async () => {
 
   const dutyLocation = document.getElementById("dutyLocation").value;

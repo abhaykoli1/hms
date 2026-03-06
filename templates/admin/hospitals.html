@@ -3,7 +3,17 @@
 
 <div class="bg-card border border-gray-50/20 rounded-2xl shadow-soft4">
   <div class="d-flex p-3 justify-content-between align-items-center">
-    <h5 class="mb-0 text-md">Hospitals</h5>
+   <div class="flex items-center gap-3">
+     <h5 class="mb-0 text-md">Hospitals</h5>
+
+  <input
+    type="text"
+    id="searchHospital"
+    placeholder="Search hospital..."
+    class="border border-gray-800 px-3 py-1.5 w-72 rounded-lg text-sm"
+    onkeyup="searchHospitals()"
+  />
+   </div>
     <div class="d-flex gap-2">
       <!-- <a href="/admin/consent" class="btn btn-sm btn-outline-secondary">
         📄 Nurse Consent
@@ -12,7 +22,7 @@
         class="bg-success -500 text-white px-3 py-1.5 !rounded-xl hover:bg-success -600 transition-colors"
         onclick="openCreateModal()"
       >
-        Add Hospital
+        Partner Hospital
       </button>
     </div>
   </div>
@@ -22,9 +32,9 @@
     <table class="min-w-full text-sm">
       <thead>
         <tr class="bg-gray-100 text-left">
-          <th class="px-3 py-2.5">Name</th>
-          <th class="px-3 py-2.5">Address</th>
-          <th class="px-3 py-2.5">Branch</th>
+          <th class="px-3 py-2.5">Hospital Name</th>
+          <th class="px-3 py-2.5">Full Address</th>
+          <th class="px-3 py-2.5">City</th>
           <th class="px-3 py-2.5">Action</th>
         </tr>
       </thead>

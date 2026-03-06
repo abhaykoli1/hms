@@ -1,5 +1,6 @@
 
 from datetime import datetime , time
+from pstats import StatsProfile
 from xml.dom.minidom import Document
 from mongoengine import *
 
@@ -143,7 +144,7 @@ class NurseConsent(Document):
 
     # 🔹 Salary (ADMIN CONTROLLED)
     salary_type = StringField(
-        choices=["DAILY", "MONTHLY"],
+        choices=["DAILY", "WEEKLY", "MONTHLY"],
         required=True
     )
     experience_letter = StringField(required=False)
@@ -201,16 +202,24 @@ class DoctorVisit(Document):
     created_at = DateTimeField(default=datetime.utcnow)
 
 class PatientProfile(Document):
-    user = ReferenceField(User, required=True)
+
+    user = ReferenceField("User", required=True)
     age = IntField()
     gender = StringField()
     medical_history = StringField()
-    assigned_doctor = ReferenceField(DoctorProfile)
+    assigned_doctor = ReferenceField("DoctorProfile")
+    assigned_caretaker = ListField(ReferenceField("NurseProfile"), default=list)
+
     address = StringField()
+    city = StringField()
+    state = StringField()
+    pincode = StringField()
+
     service_start = DateField()
     service_end = DateField()
 
-    # ✅ NEW FIELD (multiple documents)
+    adharcard = StringField()
+
     documents = ListField(StringField(), default=list)
 
 class PatientDailyNote(Document):
@@ -327,7 +336,7 @@ class PatientInvoice(Document):
 
 class Complaint(Document):
     raised_by = ReferenceField(User)
-
+    complaint_Type = StringField(choices=["Staff Behavior", "Late Arrival", "Service Issue", "Billing Issue", "Equipment Issue", "Other"], default="Other")
     message = StringField()
     status = StringField(choices=["OPEN", "IN_PROGRESS", "RESOLVED"], default="OPEN")
 

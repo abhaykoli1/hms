@@ -66,14 +66,48 @@
     </div>
 
     <div class="col-md-4 mb-3">
-      <label>Service Start</label>
+      <label>Service Start Date</label>
       <input type="date" class="form-control" id="service_start" />
     </div>
 
     <div class="col-md-4 mb-3">
-      <label>Service End</label>
+      <label>Service End Date</label>
       <input type="date" class="form-control" id="service_end" />
     </div>
+
+     <div class="col-md-4 mb-3">
+      <label>City *</label>
+      <input class="form-control" id="city" required />
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <label>State *</label>
+      <input class="form-control" id="state" required />
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <label>Pincode *</label>
+      <input class="form-control" id="pincode" required />
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <label>Documents</label>
+      <input
+        type="file"
+        multiple
+        class="form-control"
+        onchange="uploadMultipleFiles(this)"
+      />
+    </div>
+    <div class="col-md-4 mb-3">
+  <label>Aadhar Card</label>
+  <input
+    type="file"
+    class="form-control"
+    onchange="uploadAadhar(this)"
+  />
+  <input type="hidden" id="adharcard" />
+</div>
 
     <div class="col-md-12 mb-3">
       <label>Address</label>
@@ -85,15 +119,7 @@
       <textarea class="form-control" id="medical_history"></textarea>
     </div>
 
-    <div class="col-md-6 mb-3">
-      <label>Documents</label>
-      <input
-        type="file"
-        multiple
-        class="form-control"
-        onchange="uploadMultipleFiles(this)"
-      />
-    </div>
+
 
     <div class="col-md-6 mb-3">
       <label>Assign Doctor</label>
@@ -102,6 +128,16 @@
         {% for d in doctors %}
         <option value="{{ d.id }}">
           Dr. {{ d.user.name }} ({{ d.specialization }})
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-6 mb-3">
+      <label>Assign Caretaker</label>
+      <select id="assigned_caretaker" class="form-select">
+        {% for n in nurses %}
+        <option value="{{ n.id }}">
+          {{ n.user.name }} ({{ n.nurse_type }})
         </option>
         {% endfor %}
       </select>
@@ -138,36 +174,67 @@ async function uploadMultipleFiles(input) {
   document.getElementById("documents").value = JSON.stringify(paths);
 }
 
+async function uploadAadhar(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("folder", "aadhar");
+
+  const res = await fetch(FILE_API, {
+    method: "POST",
+    headers: { Authorization: headers().Authorization },
+    body: fd
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    document.getElementById("adharcard").value = data.path;
+  }
+}
+
 /* ---------- SUBMIT ---------- */
 document.getElementById("patientForm").onsubmit = async (e) => {
   e.preventDefault();
 
   const payload = {
-    name: document.getElementById("name").value.trim(),
-    phone: document.getElementById("phone").value.trim(),
-    father_name: document.getElementById("father_name").value || null,
-    other_number: document.getElementById("other_number").value || null,
-    email: document.getElementById("email").value || null,
-    age: document.getElementById("age").value || null,
-    gender: document.getElementById("gender").value || null,
-    address: document.getElementById("address").value || null,
-    medical_history: document.getElementById("medical_history").value || null,
-    service_start: document.getElementById("service_start").value || null,
-    service_end: document.getElementById("service_end").value || null,
-    hospital: document.getElementById("hospital").value || null,
-    assigned_doctor: document.getElementById("assigned_doctor").value || null,
-    documents: document.getElementById("documents").value
-      ? JSON.parse(document.getElementById("documents").value)
-      : []
-  };
+  name: document.getElementById("name").value.trim(),
+  phone: document.getElementById("phone").value.trim(),
+  father_name: document.getElementById("father_name").value || null,
+  other_number: document.getElementById("other_number").value || null,
+  email: document.getElementById("email").value || null,
+  age: document.getElementById("age").value || null,
+  gender: document.getElementById("gender").value || null,
+  city: document.getElementById("city").value || null,
+  state: document.getElementById("state").value || null,
+  pincode: document.getElementById("pincode").value || null,
+  address: document.getElementById("address").value || null,
+  medical_history: document.getElementById("medical_history").value || null,
+  service_start: document.getElementById("service_start").value || null,
+  service_end: document.getElementById("service_end").value || null,
+  hospital: document.getElementById("hospital").value || null,
+  assigned_doctor: document.getElementById("assigned_doctor").value || null,
+  assigned_caretaker: document.getElementById("assigned_caretaker").value
+    ? [document.getElementById("assigned_caretaker").value]
+    : [],
+  documents: document.getElementById("documents").value
+    ? JSON.parse(document.getElementById("documents").value)
+    : [],
+  adharcard: document.getElementById("adharcard").value || null
+};
 
   console.log("📦 PAYLOAD:", payload);
 
-  const res = await fetch(CREATE_API, {
-    method: "POST",
-    headers: headers(),
-    body: JSON.stringify(payload)
-  });
+const res = await fetch(CREATE_API, {
+  method: "POST",
+  headers: {
+    ...headers(),
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(payload)
+});
 
   const data = await res.json();
 
@@ -178,6 +245,7 @@ document.getElementById("patientForm").onsubmit = async (e) => {
     alert(data.detail || "Error creating patient");
   }
 };
+
 </script>
 
 {% endblock %}

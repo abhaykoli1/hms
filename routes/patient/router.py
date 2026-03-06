@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException ,Request
 from core.dependencies import get_current_user
 from models import (
     DoctorProfile, EquipmentTable, HospitalModel, Medicine, NurseDuty, NurseProfile, PatientProfile, PatientDailyNote,
-    PatientVitals, PatientMedication, RelativeAccess, User, UserEquipmentRequest
+    PatientVitals, PatientMedication, RelativeAccess, StaffProfile, User, UserEquipmentRequest
 )
 
 from mongoengine.errors import NotUniqueError ,ValidationError
@@ -33,6 +33,9 @@ class PatientCreateRequest(BaseModel):
     gender: Optional[str] = None
     medical_history: Optional[str] = None
     address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pincode: Optional[str] = None
 
     service_start: Optional[date] = None
     service_end: Optional[date] = None
@@ -40,7 +43,10 @@ class PatientCreateRequest(BaseModel):
     hospital: Optional[str] = None
     assigned_doctor: Optional[str] = None
 
-    documents: List[str] = []   # 🔥 IMPORTANT
+    documents: List[str] = []
+    assigned_caretaker : Optional[List[str]] = []
+    adharcard : Optional[str] = None
+       # 🔥 IMPORTANT
 
 @router.post("/create")
 async def create_patient(
@@ -89,7 +95,13 @@ async def create_patient(
             address=payload.address,
             service_start=payload.service_start,
             service_end=payload.service_end,
-            documents=payload.documents or []
+            documents=payload.documents or [],
+            city=payload.city,
+            state=payload.state,
+            pincode=payload.pincode,
+            assigned_caretaker=[
+                NurseProfile.objects.get(id=ObjectId(nurse_id))  for nurse_id in (payload.assigned_caretaker or [])  ],
+                adharcard=payload.adharcard
         )
 
         # 👨‍⚕️ Assign doctor (safe)
@@ -189,6 +201,12 @@ class PatientUpdatePayload(BaseModel):
     hospital: Optional[str] = None
     assigned_doctor: Optional[str] = None
     documents: Optional[List[str]] = None
+  
+    assigned_caretaker : Optional[List[str]] = None
+    adharcard : Optional[str] = None
+    city : Optional[str] = None
+    state : Optional[str] = None
+    pincode : Optional[str] = None
 
 
 @router.put("/{patient_id}/edit")
@@ -240,6 +258,27 @@ def update_patient(patient_id: str, payload: PatientUpdatePayload):
 
     patient.save()
 
+   
+
+    if payload.assigned_caretaker:
+       patient.assigned_caretaker = [
+        NurseProfile.objects(id=nurse_id).first()
+        for nurse_id in payload.assigned_caretaker
+    ]
+
+    if payload.adharcard:
+        patient.adharcard = payload.adharcard
+
+    if payload.city:
+        patient.city = payload.city
+
+    if payload.state:
+        patient.state = payload.state
+
+    if payload.pincode:
+        patient.pincode = payload.pincode
+
+    patient.save()
     return {
         "success": True,
         "message": "Patient updated successfully"
@@ -1060,10 +1099,14 @@ def get_all_requests():
             "id": str(r.id),
             "patient_id": str(r.patient.id),
             "patient_name": getattr(r.patient.user, "name", ""),
+            "patient_phone": getattr(r.patient.user, "phone", ""),
             "ward": str(r.patient.address),
             "equipment_id": str(r.equipment.id),
             "equipment_title": r.equipment.title,
             "equipment_image": r.equipment.image,
+            "equipment_price": r.equipment.price,
+            "request_time": r.created_at,
+    
             "status": r.status
         })
     print(data)

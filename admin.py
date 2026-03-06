@@ -243,15 +243,23 @@ def dashboard(
         chart_labels.append(current_day.strftime("%d %b"))
         chart_values.append(count)
         current_day = next_day
-
+    # ======================
+    # PENDING BILLING
+    # ======================. 
+    
+    pending_bills = PatientBill.objects(
+    status__ne="PAID"
+    ).only("grand_total")
     # ======================
     # RESPONSE
     # ======================
+    total_pending_billing = sum(b.grand_total or 0 for b in pending_bills)
     return templates.TemplateResponse(
         "admin/dashboard.html",
         {
             "request": request,
             "hospitals": hospitals,
+            "doctors": DoctorProfile.objects(available=True).count(),
             "selected_hospital": hospital_id,
             "total_patients": total_patients,
             "active_nurses": total_nurses,
@@ -263,7 +271,9 @@ def dashboard(
             "chart_labels": chart_labels,
             "chart_values": chart_values,
             "start": start,
-            "end": end
+            "end": end,
+            "in_used_equipment": UserEquipmentRequest.objects(status=True).count(),
+            "pending_Payments": round(total_pending_billing, 2),
         }
     )
 
@@ -301,12 +311,14 @@ def create_patient_page(request: Request):
 
     doctors = DoctorProfile.objects(available=True)
     hospitals = HospitalModel.objects.all()
+    nurses = NurseProfile.objects()
 
     return templates.TemplateResponse(
         "admin/add_pataint.html",
         {
             "request": request,
             "doctors": doctors,
+            "nurses": nurses,
             "hospitals": hospitals,
         }
     )
