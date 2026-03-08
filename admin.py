@@ -254,6 +254,7 @@ def dashboard(
     # RESPONSE
     # ======================
     total_pending_billing = sum(b.grand_total or 0 for b in pending_bills)
+    totalCareTakers = NurseProfile.objects(nurse_type="CARETAKER").count()
     return templates.TemplateResponse(
         "admin/dashboard.html",
         {
@@ -274,6 +275,7 @@ def dashboard(
             "end": end,
             "in_used_equipment": UserEquipmentRequest.objects(status=True).count(),
             "pending_Payments": round(total_pending_billing, 2),
+            "total_caretakers": totalCareTakers
         }
     )
 
