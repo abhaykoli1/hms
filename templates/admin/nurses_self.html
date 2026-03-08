@@ -54,9 +54,9 @@ endblock %} {% block content %}
             {% endif %}
 
             <div>
-              <div class="fw-semibold">{{ nurse.user.phone }}</div>
+              <div class="fw-semibold">{{ nurse.user.name }}</div>
               <small class="text-muted">
-                {{ nurse.user.name }}
+                {{ nurse.user.phone }}
                 <span class="badge bg-primary ms-1">SELF</span>
               </small>
             </div>
@@ -85,8 +85,8 @@ endblock %} {% block content %}
 
         <!-- POLICE -->
         <td>
-          {% if nurse.police_verification_status == "CLEAR" %}
-          <span class="badge bg-success">Cleared</span>
+          {% if nurse.police_verification_status == "VERIFIED" %}
+          <span class="badge bg-success lowercase">VERIFIED</span>
           {% elif nurse.police_verification_status == "FAILED" %}
           <span class="badge bg-danger">Failed</span>
           {% else %}

@@ -24,11 +24,20 @@ block content %}
 
         <span class="mb-1"> {{ nurse.nurse_type }} Nurse </span>
         <div>
-          {% if nurse.aadhaar_verified %}
+          <!-- {% if nurse.aadhaar_verified %}
           <span class="badge bg-success">Aadhaar Verified</span>
-          {% endif %}
+          {% endif %} -->
+
+          <span class="badge {% if nurse.aadhaar_verified %}bg-success{% else %}bg-danger{% endif %}">
+            Aadhaar Verification :
+            {% if nurse.aadhaar_verified %}
+              Verified
+            {% else %}
+              Not Verified
+            {% endif %}
+          </span>
           <span class="badge bg-info"
-            >Police Verification {{ nurse.police_verification_status }}</span
+            >Police Verification : {{ nurse.police_verification_status }}</span
           >
           <span
             class="badge {{ 'bg-warning' if nurse.digital_signature_verify else 'bg-danger' }}"
@@ -67,7 +76,7 @@ block content %}
     <div
       class="card kpi p-3 text-center flex flex-col align-items-center justify-content-center w-full"
     >
-      <small>Attendance ({{ month }})</small>
+      <small>Monthly Attendance ({{ month }})</small>
       <h3>{{ total_present }} Days</h3>
     </div>
   </div>
@@ -194,7 +203,7 @@ block content %}
   </div>
 
   <div class="text-xs text-muted mb-2">
-    Last updated: <span id="lastUpdated">-</span>
+    Last Seen: <span id="lastUpdated">-</span>
   </div>
 
   <div
@@ -204,13 +213,13 @@ block content %}
 </div>
 <!-- ================= ATTENDANCE GRAPH ================= -->
 <div class="bg-card mb-3 p-3 border border-gray-50/20 rounded-2xl shadow-soft4">
-  <h5>Attendance Graph – {{ month }}</h5>
+  <h5>Monthly Attendance Graph – {{ month }}</h5>
   <canvas id="attendanceChart" height="120"></canvas>
 </div>
 
 <!-- ================= ATTENDANCE TABLE ================= -->
 <div class="bg-card mb-3 border border-gray-50/20 rounded-2xl shadow-soft4">
-  <h5 class="p-3">Attendance Records – {{ month }}</h5>
+  <h5 class="p-3">Monthly Attendance Records – {{ month }}</h5>
   <table class="table">
     <thead>
       <tr>

@@ -32,7 +32,7 @@
           <input
             id="name"
             class="form-control"
-            placeholder="Medicine Name"
+            placeholder="Generic Name"
             required
             minlength="2"
           />
@@ -42,7 +42,7 @@
           <input
             id="company_name"
             class="form-control"
-            placeholder="Company Name"
+            placeholder="Manufacturer"
             required
           />
         </div>
@@ -51,7 +51,7 @@
           <input
             id="dosage"
             class="form-control"
-            placeholder="Dosage (500mg)"
+            placeholder="Strength (500mg)"
             required
           />
         </div>
@@ -161,7 +161,7 @@
 
         alert(d.message || "Medicine added successfully");
 
-        // Clear form
+        // VERIFIED form
         document.getElementById("name").value = "";
         document.getElementById("company_name").value = "";
         document.getElementById("dosage").value = "";

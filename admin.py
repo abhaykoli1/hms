@@ -1116,17 +1116,17 @@ def nurse_detail_page(
     print("\n========== NURSE DETAIL PAGE ==========")
     print("Nurse ID:", nurse_id)
     print("Month:", month)
-
+    
     nurse = NurseProfile.objects(id=nurse_id).first()
     if not nurse:
         raise HTTPException(404, "Nurse not found")
-
+    
     user = nurse.user
-
+    
     # ================= MONTH RANGE =================
     year, mon = map(int, month.split("-"))
     last_day = calendar.monthrange(year, mon)[1]
-
+   
     start_date = date(year, mon, 1)
     end_date = date(year, mon, last_day)
 
@@ -1194,7 +1194,7 @@ def nurse_detail_page(
     # print("\n--- NURSE PROFILE ---")
     # print("Type:", nurse.nurse_type)
     # print("Aadhaar:", nurse.aadhaar_number)
-    # print("Verified:", nurse.verification_status)
+    print(" Aadhaar Verified:", nurse.aadhaar_verified)
     # print("Police Verification:", nurse.police_verification_status)
     # print("PoliceDoc:", nurse.police)
     # print("Joining:", nurse.joining_date)

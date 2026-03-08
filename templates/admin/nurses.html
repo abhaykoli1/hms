@@ -62,8 +62,8 @@ content %}
             {% endif %}
 
             <div class="flex flex-col">
-              <div class="fw-semibold">{{ nurse.user.phone }}</div>
-              <small class="text-muted">{{ nurse.user.name }}</small>
+              <div class="fw-semibold">{{ nurse.user.name }}</div>
+              <small class="text-muted">{{ nurse.user.phone }}</small>
             </div>
           </div>
         </td>
@@ -86,8 +86,8 @@ content %}
 
         <!-- POLICE -->
         <td>
-          {% if nurse.police_verification_status == "CLEAR" %}
-          <span class="badge bg-success">Cleared</span>
+          {% if nurse.police_verification_status == "VERIFIED" %}
+          <span class="badge bg-success">VERIFIED</span>
           {% elif nurse.police_verification_status == "FAILED" %}
           <span class="badge bg-danger">Failed</span>
           {% else %}

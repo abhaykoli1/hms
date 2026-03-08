@@ -71,7 +71,7 @@ class NurseProfile(Document):
     police = ListField(StringField(), default=list)
     
     police_verification_status = StringField(
-        choices=["PENDING", "CLEAR", "FAILED"],
+    choices=["PENDING", "VERIFIED", "FAILED"],
         default="PENDING"
     )
     created_by = StringField(default="ADMIN", required=True)
@@ -554,7 +554,6 @@ class UserEquipmentRequest(Document):
     patient = ReferenceField("PatientProfile", required=True)
     equipment = ReferenceField(EquipmentTable, required=True)
     status = BooleanField(default=False)
-
 
 class UserJoiningFees(Document):
     amount = IntField(required=True, default=99)

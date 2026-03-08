@@ -1531,8 +1531,8 @@ def consent_status(user=Depends(get_current_user)):
             "aadhaar_verified": nurse.aadhaar_verified
         }
 
-    # ❌ Condition 2: Police verification must be CLEAR
-    if nurse.police_verification_status != "CLEAR":
+    # ❌ Condition 2: Police verification must be VERIFIED
+    if nurse.police_verification_status != "VERIFIED":
         return {
             "signed": False,
             "reason": "POLICE_VERIFICATION_PENDING",
@@ -1554,7 +1554,7 @@ def consent_status(user=Depends(get_current_user)):
         "signed": True,
         "status": "SIGNED",
         "signed_at": consent.signed_at,
-        "police_verified": "CLEAR",
+        "police_verified": "VERIFIED",
         "aadhaar_verified": True
     }
 

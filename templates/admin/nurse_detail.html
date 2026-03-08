@@ -24,9 +24,14 @@ block content %}
 
         <span class="mb-1"> {{ nurse.nurse_type }} Nurse </span>
         <div>
-          {% if nurse.aadhaar_verified %}
-          <span class="badge bg-success">Aadhaar Verified</span>
-          {% endif %}
+          <span class="badge {% if nurse.aadhaar_verified %}bg-success{% else %}bg-danger{% endif %}">
+            Aadhaar Verification :
+            {% if nurse.aadhaar_verified %}
+              Verified
+            {% else %}
+              Not Verified
+            {% endif %}
+          </span>
           <span class="badge bg-info"
             >Police Verification {{ nurse.police_verification_status }}</span
           >
