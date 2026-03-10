@@ -1264,7 +1264,7 @@ def nurses(
     request: Request,
     user = Depends(role_required(["ADMIN", "NURSE"]))
 ):
-    nurses_qs = NurseProfile.objects(created_by="ADMIN", nurse_type="CARETAKER").select_related()
+    nurses_qs = NurseProfile.objects( nurse_type="CARETAKER").select_related()
 
     return templates.TemplateResponse(
         "admin/careTacker.html",

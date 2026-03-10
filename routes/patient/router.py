@@ -1156,3 +1156,41 @@ def delete_request(request_id: str):
     req.delete()
 
     return {"message": "Request deleted"}
+
+class AssignEquipmentSchema(BaseModel):
+    patient_id: str
+    equipments: List[str]
+
+
+@router.post("/assign-equipment")
+async def assign_equipment(data: AssignEquipmentSchema):
+
+    # 🔹 patient check
+    patient = PatientProfile.objects(id=data.patient_id).first()
+
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    created = []
+
+    for eq_id in data.equipments:
+
+        equipment = EquipmentTable.objects(id=eq_id).first()
+
+        if not equipment:
+            continue
+
+        req = UserEquipmentRequest(
+            patient=patient,
+            equipment=equipment,
+            status=True
+        )
+
+        req.save()
+
+        created.append(str(req.id))
+
+    return {
+        "success": True,
+        "assigned": created
+    }
