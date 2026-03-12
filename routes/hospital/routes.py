@@ -24,6 +24,8 @@ def get_hospitals():
         {
             "id": str(h.id),
             "name": h.name,
+            "aname": h.aname,
+            "acontact": h.acontact,
             "address": h.address,
             "branch": h.branch
         }
@@ -41,6 +43,8 @@ def get_single_hospital(hospital_id: str):
     return {
         "id": str(hospital.id),
         "name": hospital.name,
+        "aname": hospital.aname,
+        "acontact": hospital.acontact,
         "address": hospital.address,
         "branch": hospital.branch
     }
@@ -54,6 +58,8 @@ def update_hospital(hospital_id: str, payload: HospitalCreate):
         raise HTTPException(status_code=404, detail="Hospital not found")
 
     hospital.name = payload.name
+    hospital.aname = payload.aname
+    hospital.acontact = payload.acontact
     hospital.address = payload.address
     hospital.branch = payload.branch
     hospital.save()
@@ -61,6 +67,8 @@ def update_hospital(hospital_id: str, payload: HospitalCreate):
     return {
         "id": str(hospital.id),
         "name": hospital.name,
+        "aname": hospital.aname,
+        "acontact": hospital.acontact,
         "address": hospital.address,
         "branch": hospital.branch
     }

@@ -1157,15 +1157,18 @@ def delete_request(request_id: str):
 
     return {"message": "Request deleted"}
 
+class EquipmentRow(BaseModel):
+    equipment_id: str
+    day_duration: int
+
 class AssignEquipmentSchema(BaseModel):
     patient_id: str
-    equipments: List[str]
+    equipments: List[EquipmentRow]
 
 
 @router.post("/assign-equipment")
 async def assign_equipment(data: AssignEquipmentSchema):
 
-    # 🔹 patient check
     patient = PatientProfile.objects(id=data.patient_id).first()
 
     if not patient:
@@ -1173,9 +1176,9 @@ async def assign_equipment(data: AssignEquipmentSchema):
 
     created = []
 
-    for eq_id in data.equipments:
+    for row in data.equipments:
 
-        equipment = EquipmentTable.objects(id=eq_id).first()
+        equipment = EquipmentTable.objects(id=row.equipment_id).first()
 
         if not equipment:
             continue
@@ -1183,7 +1186,8 @@ async def assign_equipment(data: AssignEquipmentSchema):
         req = UserEquipmentRequest(
             patient=patient,
             equipment=equipment,
-            status=True
+            status=True,
+            day_duration=row.day_duration
         )
 
         req.save()

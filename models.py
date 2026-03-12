@@ -6,6 +6,8 @@ from mongoengine import *
 
 class HospitalModel(Document):
     name = StringField(required=True)
+    aname = StringField(required=False)  # authority name
+    acontact = StringField(required=False)  # authority contact
     address = StringField(required=True)
     branch = StringField(required=True)
 
@@ -56,7 +58,7 @@ class NurseProfile(Document):
     aadharData = DictField(required=False)
     qualification_docs = ListField(StringField())
     experience_docs = ListField(StringField())
-
+    medical_docs = ListField(StringField(required=False))
     profile_photo = StringField()
     digital_signature = StringField()
     digital_signature_verify = BooleanField(default=False)
@@ -554,6 +556,7 @@ class UserEquipmentRequest(Document):
     patient = ReferenceField("PatientProfile", required=True)
     equipment = ReferenceField(EquipmentTable, required=True)
     status = BooleanField(default=False)
+    day_duration = IntField(default=1)
 
 class UserJoiningFees(Document):
     amount = IntField(required=True, default=99)

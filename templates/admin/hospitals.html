@@ -33,6 +33,8 @@
       <thead>
         <tr class="bg-gray-100 text-left">
           <th class="px-3 py-2.5">Hospital Name</th>
+          <th class="px-3 py-2.5">Authority Person</th>
+          <th class="px-3 py-2.5">Authority Contact</th>
           <th class="px-3 py-2.5">Full Address</th>
           <th class="px-3 py-2.5">City</th>
           <th class="px-3 py-2.5">Action</th>
@@ -58,6 +60,8 @@
     <h5 class="text- mb-4">Add Hospital</h5>
 
     <input class="input" id="h_name" placeholder="Hospital Name" />
+    <input class="input" id="h_aname" placeholder="Authority Person" />
+    <input class="input" id="h_acontact" placeholder="Authority Contact" />
     <input class="input" id="h_address" placeholder="Address" />
     <input class="input mb-4" id="h_branch" placeholder="Branch" />
 
@@ -82,6 +86,8 @@
     <input type="hidden" id="edit_id" />
 
     <input class="input" id="edit_name" placeholder="Hospital Name" />
+    <input class="input" id="edit_aname" placeholder="Authority Person" />
+    <input class="input" id="edit_acontact" placeholder="Authority Contact" />
     <input class="input" id="edit_address" placeholder="Address" />
     <input class="input mb-4" id="edit_branch" placeholder="Branch" />
 
@@ -142,6 +148,8 @@
   table.innerHTML += `
   <tr class="hover:bg-gray-50">
     <td class="px-3 py-2.5 font-medium">${h.name}</td>
+    <td class="px-3 py-2.5 font-medium">${h.aname}</td>
+    <td class="px-3 py-2.5 font-medium">${h.acontact}</td>
     <td class="px-3 py-2.5">${h.address}</td>
     <td class="px-3 py-2.5">${h.branch}</td>
     <td class="px-3 py-2.5">
@@ -161,6 +169,8 @@
   async function createHospital() {
     const payload = {
       name: h_name.value,
+      aname: h_aname.value,
+      acontact: h_acontact.value,
       address: h_address.value,
       branch: h_branch.value,
     };
@@ -186,6 +196,8 @@
 
   const payload = {
     name: edit_name.value,
+    aname: edit_aname.value,
+    acontact: edit_acontact.value,
     address: edit_address.value,
     branch: edit_branch.value,
   };
@@ -211,6 +223,8 @@
 
   edit_id.value = data.id;
   edit_name.value = data.name;
+  edit_aname.value = data.aname;
+  edit_acontact.value = data.acontact;
   edit_address.value = data.address;
   edit_branch.value = data.branch;
 

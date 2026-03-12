@@ -62,6 +62,12 @@ class NurseCreateRequest(BaseModel):
         None,
         example="uploads/documents/aadhaar_back.jpg"
     )
+
+    medical_docs: List[str] = Field(
+        default_factory=list,
+        example=["uploads/documents/medical_report.pdf"]
+    )
+
     qualification_docs: List[str] = Field(
         default_factory=list,
         example=["uploads/documents/gnm_certificate.pdf"]
@@ -147,6 +153,7 @@ class NurseSelfSignupRequest(BaseModel):
     aadhaar_front: Optional[str] = None
     aadhaar_back: Optional[str] = None
     qualification_docs: List[str] = Field(default_factory=list)
+    medical_docs: List[str] = Field(default_factory=list)
     experience_docs: List[str] = Field(default_factory=list)
     police: List[str] = Field(default_factory=list)
     profile_photo: Optional[str] = None
@@ -214,6 +221,7 @@ def nurse_self_signup(payload: NurseSelfSignupRequest):
         joining_date=payload.joining_date,
         verification_status="PENDING",
         police_verification_status="PENDING",
+        medical_docs=payload.medical_docs,
         created_by="SELF"
     ).save()
 
@@ -337,6 +345,7 @@ async def create_nurse(payload: NurseCreateRequest , request: Request):
             user=user,
             nurse_type=payload.nurse_type,
             aadhaar_number=payload.aadhaar_number,
+            medical_docs=payload.medical_docs,
             qualification_docs=payload.qualification_docs,
             experience_docs=payload.experience_docs,
             profile_photo=payload.profile_photo,

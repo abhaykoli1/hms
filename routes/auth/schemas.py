@@ -100,6 +100,8 @@ class EquipmentResponse(BaseModel):
 
 class HospitalCreate(BaseModel):
     name: str
+    aname: Optional[str] = None
+    acontact: Optional[str] = None
     address: str
     branch: str
 

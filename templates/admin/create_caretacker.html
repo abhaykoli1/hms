@@ -14,6 +14,8 @@ block content %}
   <input type="hidden" id="experience_docs" />
   <input type="hidden" id="profile_photo" />
   <input type="hidden" id="digital_signature" />
+  <input type="hidden" id="medical_docs" />
+
 
   <!-- STEP 1 -->
   <div class="card step p-3 mb-4" id="step1">
@@ -98,13 +100,23 @@ block content %}
       />
     </div>
 
+        <div class="col-md-6 mb-3">
+      <label>HIV / AIDS / HBASG Documents</label>
+      <input
+        type="file"
+        multiple
+        class="form-control"
+        onchange="uploadMultipleFiles(this, 'medical_docs', 'documents')"
+      />
+    </div>
+
     <div class="row">
       <div class="col-md-6 mb-3">
-        <label>Joining Date</label>
+        <label>Date of joining</label>
         <input type="date" class="form-control" id="joining_date" />
       </div>
       <div class="col-md-6 mb-3">
-        <label>Resignation Date</label>
+        <label>Last Working Date</label>
         <input type="date" class="form-control" id="resignation_date" />
       </div>
     </div>
@@ -202,6 +214,7 @@ block content %}
     const experience_docs = document.getElementById("experience_docs");
     const profile_photo = document.getElementById("profile_photo");
     const digital_signature = document.getElementById("digital_signature");
+    const medical_docs = document.getElementById("medical_docs");
 
     const joining_date = document.getElementById("joining_date");
     const resignation_date = document.getElementById("resignation_date");
@@ -311,6 +324,10 @@ block content %}
 
       payload.experience_docs = experience_docs.value
         ? JSON.parse(experience_docs.value)
+        : [];
+      
+      payload.medical_docs = medical_docs.value
+        ? JSON.parse(medical_docs.value)
         : [];
 
       if (profile_photo.value) payload.profile_photo = profile_photo.value;
