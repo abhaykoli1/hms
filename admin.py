@@ -894,30 +894,57 @@ def view_patient_details(request: Request, patient_id: str):
     patient = PatientProfile.objects(id=patient_id).first()
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
-
-    duties = NurseDuty.objects(
-        patient=patient
-    ).order_by("-duty_start")
-
+ 
+    duties = NurseDuty.objects(patient=patient).order_by("-duty_start")
     notes = PatientDailyNote.objects(patient=patient).order_by("-created_at")
     vitals = PatientVitals.objects(patient=patient).order_by("-recorded_at")
     medications = PatientMedication.objects(patient=patient)
     relatives = RelativeAccess.objects(patient=patient)
-
+ 
+    # ── Equipment ──────────────────────────────────────────────
+    equipment_requests = UserEquipmentRequest.objects(patient=patient)
+ 
+    equipment_data = []
+    total_equipment_cost = 0.0
+ 
+    for eq_req in equipment_requests:
+        try:
+            equip       = eq_req.equipment          # ReferenceField → EquipmentTable
+            days        = eq_req.day_duration or 1
+            price_per_day = equip.price or 0.0
+            total_cost  = days * price_per_day
+ 
+            total_equipment_cost += total_cost
+ 
+            equipment_data.append({
+                "title"        : equip.title,
+                "image"        : equip.image,
+                "price_per_day": price_per_day,
+                "days"         : days,
+                "total_cost"   : total_cost,
+                "status"       : eq_req.status,   # True/False (approved/pending)
+            })
+        except Exception:
+            # Agar reference broken ho toh skip karo
+            continue
+    # ───────────────────────────────────────────────────────────
+ 
     return templates.TemplateResponse(
         "admin/view_patient.html",
         {
-            "request": request,
-            "patient": patient,
-            "doctor": patient.assigned_doctor,
-            "duties": duties,     # ✅ ALL duties now
-            "notes": notes,
-            "vitals": vitals,
-            "medications": medications,
-            "relatives": relatives,
+            "request"              : request,
+            "patient"              : patient,
+            "doctor"               : patient.assigned_doctor,
+            "duties"               : duties,
+            "notes"                : notes,
+            "vitals"               : vitals,
+            "medications"          : medications,
+            "relatives"            : relatives,
+            # ✅ NEW
+            "equipment_data"       : equipment_data,
+            "total_equipment_cost" : total_equipment_cost,
         }
     )
-
 
 
 

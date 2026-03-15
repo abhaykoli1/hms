@@ -30,7 +30,7 @@ from routes.fcm.routes.routes import router as notifcationRouter
 from routes.payment import router as paymentRouter
 from routes.hospital.routes import router as hospital_router
 from routes.adhar.routes import router as aadharRouter
-from routes.nurse.pdfSalaryRouter import router as pdfSalaryRouter
+from routes.nurse.pdfSalaryRouter import router as pdfSalaryRouter  
 from jose import JWTError
 from startup import create_default_admin
 app = FastAPI(title="Hospital Management System")

@@ -2,9 +2,10 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse
 from datetime import datetime
 import os
+from .schemas import UpdateSalaryRequest
 
 from models import NurseProfile, NurseSalary
-from .schrmas import (
+from .schemas import (
     CreateSalaryRequest,
     PaySalaryRequest,
     UpdateSalaryRequest,
@@ -29,13 +30,8 @@ router = APIRouter(
 # ─────────────────────────────────────────────────────────────
 
 def build_payslip_data(record: NurseSalary, amount_paid_now: float) -> dict:
-    """
-    NurseSalary record se payslip generator ke liye data taiyar karo.
-    Hospital info, nurse info, attendance, salary sab ek dict mein.
-    """
     nurse = record.nurse
 
-    # ── Nurse info ──
     nurse_name  = "N/A"
     nurse_phone = "N/A"
     nurse_type  = nurse.nurse_type or "N/A"
@@ -47,7 +43,6 @@ def build_payslip_data(record: NurseSalary, amount_paid_now: float) -> dict:
     except Exception:
         pass
 
-    # ── Hospital info ──
     hospital_name    = "WeCare360"
     hospital_address = ""
     hospital_phone   = ""
@@ -61,7 +56,6 @@ def build_payslip_data(record: NurseSalary, amount_paid_now: float) -> dict:
     except Exception:
         pass
 
-    # ── Attendance (recalculate) ──
     year, mon = parse_month(record.month)
     attendance = get_working_days(nurse_id, year, mon)
     duty_info  = get_duty_salary(nurse_id, year, mon)
@@ -70,36 +64,25 @@ def build_payslip_data(record: NurseSalary, amount_paid_now: float) -> dict:
     pending_amount = max((record.net_salary or 0) - paid_amount, 0)
 
     return {
-        # Hospital
         "hospital_name"   : hospital_name,
         "hospital_address": hospital_address,
         "hospital_phone"  : hospital_phone,
-
-        # Nurse
         "nurse_name"  : nurse_name,
         "nurse_phone" : nurse_phone,
         "nurse_type"  : nurse_type,
         "nurse_id"    : f"NRS-{nurse_id[-6:].upper()}",
-
-        # Period
         "month"        : record.month,
         "total_days"   : attendance["total_days"],
         "present_days" : attendance["present_days"],
         "absent_days"  : attendance["absent_days"],
-
-        # Salary
         "basic_salary"  : record.basic_salary  or 0,
         "deductions"    : record.deductions     or 0,
         "advance_taken" : record.advance_taken  or 0,
         "net_salary"    : record.net_salary     or 0,
-
-        # Payment
         "amount_paid_now": amount_paid_now,
         "total_paid"     : paid_amount,
         "pending_amount" : pending_amount,
         "is_fully_paid"  : record.is_paid,
-
-        # Duty breakdown
         "duty_breakdown" : duty_info["duty_breakdown"],
     }
 
@@ -161,19 +144,39 @@ def get_salary_summary(
 
 # ═══════════════════════════════════════════════════════════════
 #  2. POST /create
+#
+#  ✅ FIX: Agar record exist kare toh 409 nahi, balki existing
+#          record ki details return karo taaki /pay use kar sako
 # ═══════════════════════════════════════════════════════════════
 
-@router.post("/create", status_code=201, summary="Salary record create karo")
+@router.post("/create", status_code=201, summary="Salary record create karo (ya existing return karo)")
 def create_salary(body: CreateSalaryRequest):
     nurse = NurseProfile.objects(id=body.nurse_id).first()
     if not nurse:
         raise HTTPException(status_code=404, detail="Nurse nahi mili")
 
-    if NurseSalary.objects(nurse=body.nurse_id, month=body.month).first():
-        raise HTTPException(
-            status_code=409,
-            detail=f"{body.month} ka record pehle se exist karta hai. PUT /update use karein.",
-        )
+    # ── FIX: 409 hatao — existing record return karo ──
+    existing = NurseSalary.objects(nurse=body.nurse_id, month=body.month).first()
+    if existing:
+        paid    = existing.paid_amount or 0.0
+        pending = max((existing.net_salary or 0) - paid, 0)
+        return {
+            "success"        : True,
+            "already_exists" : True,
+            "message"        : "Record pehle se exist karta hai — salary_id se /pay call karo",
+            "data": {
+                "salary_id"     : str(existing.id),
+                "month"         : existing.month,
+                "basic_salary"  : existing.basic_salary,
+                "deductions"    : existing.deductions,
+                "advance_taken" : existing.advance_taken,
+                "net_salary"    : existing.net_salary,
+                "paid_amount"   : paid,
+                "pending"       : pending,
+                "is_paid"       : existing.is_paid,
+                "payslip_pdf"   : existing.payslip_pdf,
+            },
+        }
 
     year, mon = parse_month(body.month)
     attendance = get_working_days(body.nurse_id, year, mon)
@@ -195,8 +198,9 @@ def create_salary(body: CreateSalaryRequest):
     record.save()
 
     return {
-        "success": True,
-        "message": "Salary record create ho gaya",
+        "success"        : True,
+        "already_exists" : False,
+        "message"        : "Salary record create ho gaya",
         "data": {
             "salary_id"     : str(record.id),
             "month"         : body.month,
@@ -218,18 +222,18 @@ def create_salary(body: CreateSalaryRequest):
 # ═══════════════════════════════════════════════════════════════
 #  3. PUT /pay/{salary_id}
 #
-#  ✅ AUTO PAYSLIP GENERATE HOGI — koi manual upload nahi
-#  ✅ Partial ya full dono kaam karega
-#  ✅ Payment ke baad nurse ko notification milegi
+#  ✅ Partial ya full — baar baar payment allowed
+#  ✅ Har payment pe NAYA payslip generate hoga
+#  ✅ Fully paid hone ke baad payment block hogi
 # ═══════════════════════════════════════════════════════════════
 
 @router.put(
     "/pay/{salary_id}",
-    summary="Salary payment karo — payslip automatically generate hogi",
+    summary="Salary payment karo — har payment pe naya payslip generate hoga",
     description=(
         "Admin amount dalta hai. "
         "System automatically professional payslip PDF generate karta hai. "
-        "Partial ya full dono allowed hai."
+        "Partial ya full dono allowed hai. Baar baar pay kar sakte ho jab tak pending > 0."
     ),
 )
 def pay_salary(salary_id: str, body: PaySalaryRequest):
@@ -237,6 +241,18 @@ def pay_salary(salary_id: str, body: PaySalaryRequest):
     record = NurseSalary.objects(id=salary_id).first()
     if not record:
         raise HTTPException(status_code=404, detail="Salary record nahi mila")
+
+    # ── Already fully paid check ──
+    if record.is_paid:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message"    : "Salary pehle se fully paid hai",
+                "net_salary" : record.net_salary,
+                "total_paid" : record.paid_amount,
+                "pending"    : 0,
+            },
+        )
 
     current_paid = record.paid_amount or 0.0
     new_paid     = current_paid + body.amount_paid
@@ -257,12 +273,12 @@ def pay_salary(salary_id: str, body: PaySalaryRequest):
     # ── Payment update ──
     record.paid_amount = new_paid
     record.is_paid     = (new_paid >= record.net_salary)
-    record.save()   # pehle save karo taaki build_payslip_data sahi values le
+    record.save()
 
     pending = max(record.net_salary - new_paid, 0)
 
     # ══════════════════════════════════════
-    #  AUTO PAYSLIP PDF GENERATE
+    #  AUTO PAYSLIP PDF GENERATE (har baar)
     # ══════════════════════════════════════
     payslip_path = None
     payslip_url  = None
@@ -271,16 +287,14 @@ def pay_salary(salary_id: str, body: PaySalaryRequest):
         slip_data    = build_payslip_data(record, body.amount_paid)
         payslip_path = generate_payslip_pdf(slip_data)
 
-        # ── URL banao (apna base URL lagao) ──
-        BASE_URL     = os.getenv("BASE_URL", "http://localhost:8000")
-        payslip_url  = f"{BASE_URL}/api/nurse/salary/payslip/{os.path.basename(payslip_path)}"
+        BASE_URL    = os.getenv("BASE_URL", "http://localhost:8000")
+        payslip_url = f"{BASE_URL}/api/nurse/salary/payslip/{os.path.basename(payslip_path)}"
 
-        # ── DB mein save karo ──
+        # ── Latest payslip URL DB mein save karo ──
         record.payslip_pdf = payslip_url
         record.save()
 
     except Exception as e:
-        # Payslip fail hone par payment cancel mat karo — sirf log karo
         print(f"[PAYSLIP ERROR] salary_id={salary_id} | error={e}")
 
     # ── Nurse ko notification ──
@@ -288,7 +302,11 @@ def pay_salary(salary_id: str, body: PaySalaryRequest):
 
     return {
         "success": True,
-        "message": "✅ Payment successful — payslip generate ho gayi",
+        "message": (
+            "✅ Final payment — salary complete!"
+            if record.is_paid
+            else f"✅ Partial payment done — ₹{pending} abhi bhi pending hai"
+        ),
         "data": {
             "salary_id"       : salary_id,
             "month"           : record.month,
@@ -297,16 +315,14 @@ def pay_salary(salary_id: str, body: PaySalaryRequest):
             "total_paid"      : new_paid,
             "pending_amount"  : pending,
             "is_fully_paid"   : record.is_paid,
-            "payslip_pdf"     : payslip_url,        # ← auto-generated URL
-            "payslip_path"    : payslip_path,        # ← server pe file path
+            "payslip_pdf"     : payslip_url,
+            "payslip_path"    : payslip_path,
         },
     }
 
 
 # ═══════════════════════════════════════════════════════════════
 #  4. GET /payslip/{filename}
-#
-#  Browser / App mein payslip PDF download / view karo
 # ═══════════════════════════════════════════════════════════════
 
 @router.get(
@@ -332,8 +348,7 @@ def download_payslip(filename: str):
 # ═══════════════════════════════════════════════════════════════
 
 @router.put("/update/{salary_id}", summary="Salary record update karo")
-def update_salary(salary_id: str, body):
-    from schemas import UpdateSalaryRequest
+def update_salary(salary_id: str, body: UpdateSalaryRequest):
     record = NurseSalary.objects(id=salary_id).first()
     if not record:
         raise HTTPException(status_code=404, detail="Salary record nahi mila")
@@ -372,7 +387,7 @@ def update_salary(salary_id: str, body):
 
 
 # ═══════════════════════════════════════════════════════════════
-#  6. GET /all/{nurse_id}  — Poori salary history
+#  6. GET /all/{nurse_id}
 # ═══════════════════════════════════════════════════════════════
 
 @router.get("/all/{nurse_id}", summary="Nurse ki poori salary history")
