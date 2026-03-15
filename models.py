@@ -131,6 +131,8 @@ class NurseSalary(Document):
     advance_taken = FloatField(default=0)
     is_paid = BooleanField(default=False)
     payslip_pdf = StringField()
+    paid_amount = FloatField(default=0)
+    payslip_pdf
 
     created_at = DateTimeField(default=datetime.utcnow)
 
