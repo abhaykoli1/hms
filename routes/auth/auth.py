@@ -76,7 +76,7 @@ def normalize_phone(phone: str):
 
 #     return {"message": "OTP sent successfully"}
 
-TEST_PHONE = "9983631648"
+TEST_PHONE = "1111111111"
 TEST_OTP = "123456"
 
 @router.post("/send-otp")
