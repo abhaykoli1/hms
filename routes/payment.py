@@ -34,7 +34,7 @@ def create_order(body: CreateOrderRequest):
         "order_id": order["id"],
         "amount": order["amount"],
         "currency": "INR",
-        "key": "rzp_live_SBbgiyIPp35rea"
+        "key": "rzp_live_SWiSrpP6yzKeUo"
     }
 
 
@@ -61,7 +61,7 @@ def create_order( user=Depends(get_current_user)):
         "order_id": order["id"],
         "amount": order["amount"],
         "currency": "INR",
-        "key": "rzp_live_SBbgiyIPp35rea"
+        "key": "rzp_live_SWiSrpP6yzKeUo"
     }
 
 
