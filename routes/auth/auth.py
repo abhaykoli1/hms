@@ -90,52 +90,23 @@ TEST_OTP = "123456"
 #             "otp": TEST_OTP
 #         }
 
-@router.post("/verify-otp")
-def verify_otp(data: VerifyOTPRequest):
-
-    normalized_phone = normalize_phone(data.phone)
-
-    user = User.objects(phone=data.phone).first()
-
-    if not user:
-        raise HTTPException(404, "User not found")
-
-    # ✅ Fixed OTP logic
-    if normalized_phone == TEST_PHONE and data.otp == TEST_OTP:
-
-        user.otp_verified = True
-        user.otp_session = None
-        user.last_login = datetime.utcnow()
-        user.token_version += 1
-        user.save()
-
-        token = create_access_token(
-            {
-                "user_id": str(user.id),
-                "role": user.role
-            },
-            user.token_version
-        )
-
-        return {
-            "access_token": token,
-            "role": user.role,
-            "token_type": "bearer"
-        }
-
 # @router.post("/verify-otp")
 # def verify_otp(data: VerifyOTPRequest):
 
-#     # 🔹 find user
+#     normalized_phone = normalize_phone(data.phone)
+
 #     user = User.objects(phone=data.phone).first()
-    
+
 #     if not user:
 #         raise HTTPException(404, "User not found")
 
-#     if data.phone == "951156476" and data.otp == test_otp:
+#     # ✅ Fixed OTP logic
+#     if normalized_phone == TEST_PHONE and data.otp == TEST_OTP:
+
 #         user.otp_verified = True
 #         user.otp_session = None
 #         user.last_login = datetime.utcnow()
+#         user.token_version += 1
 #         user.save()
 
 #         token = create_access_token(
@@ -151,63 +122,92 @@ def verify_otp(data: VerifyOTPRequest):
 #             "role": user.role,
 #             "token_type": "bearer"
 #         }
-#     if not user.otp_session:
-#         raise HTTPException(400, "OTP session missing. Please resend OTP")
+
+@router.post("/verify-otp")
+def verify_otp(data: VerifyOTPRequest):
+
+    # 🔹 find user
+    user = User.objects(phone=data.phone).first()
+    
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    if data.phone == "951156476" and data.otp == test_otp:
+        user.otp_verified = True
+        user.otp_session = None
+        user.last_login = datetime.utcnow()
+        user.save()
+
+        token = create_access_token(
+            {
+                "user_id": str(user.id),
+                "role": user.role
+            },
+            user.token_version
+        )
+
+        return {
+            "access_token": token,
+            "role": user.role,
+            "token_type": "bearer"
+        }
+    if not user.otp_session:
+        raise HTTPException(400, "OTP session missing. Please resend OTP")
 
 
-#     params = {
-#         "api_key": API_KEY,
-#         "otp_session": user.otp_session,   # from Details
-#         "otp_entered_by_user": data.otp
-#     }
+    params = {
+        "api_key": API_KEY,
+        "otp_session": user.otp_session,   # from Details
+        "otp_entered_by_user": data.otp
+    }
 
-#     try:
-#         res = requests.get(BASE_URL, params=params, timeout=10)
-#         response = res.json()
-#     except Exception:
-#         raise HTTPException(500, "OTP service unreachable")
-
-
-#     # 🔹 provider validation
-#     if res.status_code != 200:
-#         raise HTTPException(400, "OTP verification failed")
-
-#     status_value = response.get("Status", "").lower()
-
-#     if status_value != "success":
-#         raise HTTPException(400, response.get("Details", "Invalid OTP"))
+    try:
+        res = requests.get(BASE_URL, params=params, timeout=10)
+        response = res.json()
+    except Exception:
+        raise HTTPException(500, "OTP service unreachable")
 
 
-#     # 🔹 success login flow
-#     if not user.is_active:
-#         raise HTTPException(403, "User blocked")
+    # 🔹 provider validation
+    if res.status_code != 200:
+        raise HTTPException(400, "OTP verification failed")
+
+    status_value = response.get("Status", "").lower()
+
+    if status_value != "success":
+        raise HTTPException(400, response.get("Details", "Invalid OTP"))
 
 
-#     user.otp_verified = True
-#     user.otp_session = None
-#     user.last_login = datetime.utcnow()
-
-# # 🔥 SINGLE SESSION LOGIC
-#     user.token = data.token
-#     print(data.token)
-#     user.token_version += 1   # old tokens invalid
-#     user.save()
-
-#     token = create_access_token(
-#     {
-#         "user_id": str(user.id),
-#         "role": user.role
-#     },
-#     user.token_version
-#     )
+    # 🔹 success login flow
+    if not user.is_active:
+        raise HTTPException(403, "User blocked")
 
 
+    user.otp_verified = True
+    user.otp_session = None
+    user.last_login = datetime.utcnow()
 
-#     return {
-#         "access_token": token,
-#         "role": user.role,
-#         "token_type": "bearer"
-#     }
+# 🔥 SINGLE SESSION LOGIC
+    user.token = data.token
+    print(data.token)
+    user.token_version += 1   # old tokens invalid
+    user.save()
+
+    token = create_access_token(
+    {
+        "user_id": str(user.id),
+        "role": user.role
+    },
+    user.token_version
+    )
+
+
+
+    return {
+        "access_token": token,
+        "role": user.role,
+        "token_type": "bearer"
+    }
 
 
 
