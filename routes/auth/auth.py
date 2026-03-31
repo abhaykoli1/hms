@@ -41,54 +41,54 @@ def normalize_phone(phone: str):
     phone = phone.replace("+91", "").replace(" ", "")
     return phone
 
-# @router.post("/send-otp")
-# def send_otp(data: SendOTPRequest):
+@router.post("/send-otp")
+def send_otp(data: SendOTPRequest):
 
-#     params = {
-#         "api_key": API_KEY,
-#         "otp_template_name": "OTP",
-#         "phone_number": data.phone
-#     }
+    params = {
+        "api_key": API_KEY,
+        "otp_template_name": "OTP",
+        "phone_number": data.phone
+    }
 
-#     try:
-#         res = requests.get(BASE_URL, params=params, timeout=10)
-#         response = res.json()
-#     except:
-#         raise HTTPException(500, "OTP service unreachable")
+    try:
+        res = requests.get(BASE_URL, params=params, timeout=10)
+        response = res.json()
+    except:
+        raise HTTPException(500, "OTP service unreachable")
 
-#     if res.status_code != 200:
-#         raise HTTPException(400, "Failed to send OTP")
+    if res.status_code != 200:
+        raise HTTPException(400, "Failed to send OTP")
 
-#     otp_session = response.get("Details")
+    otp_session = response.get("Details")
 
-#     if not otp_session:
-#         raise HTTPException(400, "OTP session not received")
+    if not otp_session:
+        raise HTTPException(400, "OTP session not received")
 
-#     # ✅ create user if not exists
-#     user = User.objects(phone=data.phone).first()
+    # ✅ create user if not exists
+    user = User.objects(phone=data.phone).first()
 
-#     if not user:
-#         user = User(phone=data.phone, role="PATIENT")
+    if not user:
+        user = User(phone=data.phone, role="PATIENT")
 
-#     user.otp_session = otp_session
-#     user.otp_verified = False
-#     user.save()
+    user.otp_session = otp_session
+    user.otp_verified = False
+    user.save()
 
-#     return {"message": "OTP sent successfully"}
+    return {"message": "OTP sent successfully"}
 
 TEST_PHONE = "1111111111"
 TEST_OTP = "123456"
 
-@router.post("/send-otp")
-def send_otp(data: SendOTPRequest):
+# @router.post("/send-otp")
+# def send_otp(data: SendOTPRequest):
 
-    normalized_phone = normalize_phone(data.phone)
+#     normalized_phone = normalize_phone(data.phone)
 
-    if normalized_phone == TEST_PHONE:
-        return {
-            "message": "Test OTP sent",
-            "otp": TEST_OTP
-        }
+#     if normalized_phone == TEST_PHONE:
+#         return {
+#             "message": "Test OTP sent",
+#             "otp": TEST_OTP
+#         }
 
 @router.post("/verify-otp")
 def verify_otp(data: VerifyOTPRequest):
