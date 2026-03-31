@@ -94,7 +94,7 @@ def build_payslip_data(record: NurseSalary, amount_paid_now: float) -> dict:
 @router.get("/summary/{nurse_id}", summary="Nurse ki salary summary dekho")
 def get_salary_summary(
     nurse_id : str,
-    month    : str = Query(default=None, example="2025-06"),
+    month    : str = Query(default=None),
 ):
     if not month:
         month = datetime.utcnow().strftime("%Y-%m")
@@ -451,7 +451,7 @@ def get_all_salary_history(nurse_id: str):
 
 @router.get("/pending-list", summary="Pending salary wali nurses ki list")
 def get_pending_salary_list(
-    month: str = Query(default=None, example="2025-06"),
+    month: str = Query(default=None,),
 ):
     if not month:
         month = datetime.utcnow().strftime("%Y-%m")
