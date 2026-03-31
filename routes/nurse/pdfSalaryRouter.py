@@ -287,7 +287,7 @@ def pay_salary(salary_id: str, body: PaySalaryRequest):
         slip_data    = build_payslip_data(record, body.amount_paid)
         payslip_path = generate_payslip_pdf(slip_data)
 
-        BASE_URL    = os.getenv("BASE_URL", "http://localhost:8000")
+        BASE_URL    = os.getenv("BASE_URL", "http://wewecarehhcs.in")
         payslip_url = f"{BASE_URL}/api/nurse/salary/payslip/{os.path.basename(payslip_path)}"
 
         # ── Latest payslip URL DB mein save karo ──
