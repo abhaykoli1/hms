@@ -62,7 +62,7 @@ class NurseProfile(Document):
     profile_photo = StringField()
     digital_signature = StringField()
     digital_signature_verify = BooleanField(default=False)
-
+    payslips = ListField(StringField(), default=list)
     joining_date = DateField()
     resignation_date = DateField()
 
