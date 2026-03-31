@@ -284,18 +284,23 @@ def pay_salary(salary_id: str, body: PaySalaryRequest):
     payslip_url  = None
 
     try:
-        slip_data    = build_payslip_data(record, body.amount_paid)
+        print("Generating payslip...")
+        slip_data = build_payslip_data(record, body.amount_paid)
         payslip_path = generate_payslip_pdf(slip_data)
+        if not payslip_path:
+          raise Exception("Payslip path not returned")
 
-        BASE_URL = "https://wecarehhcs.in"
+        if not os.path.exists(payslip_path):
+          raise Exception(f"File not found: {payslip_path}")
+        BASE_URL = os.getenv("BASE_URL", "https://wecarehhcs.in")
         payslip_url = f"{BASE_URL}/api/nurse/salary/payslip/{os.path.basename(payslip_path)}"
 
         # ── Latest payslip URL DB mein save karo ──
         record.payslip_pdf = payslip_url
         record.save()
-
+        print("Payslip saved:", payslip_url)
     except Exception as e:
-        print(f"[PAYSLIP ERROR] salary_id={salary_id} | error={e}")
+        print("❌ PAYSLIP ERROR:", str(e))
 
     # ── Nurse ko notification ──
     send_salary_notification(record.nurse, body.amount_paid, record.month, pending)

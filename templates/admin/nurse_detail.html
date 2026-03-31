@@ -717,7 +717,6 @@ function fillPaySection(d) {
   }
 
   var sb = document.getElementById("pSlipBox");
-  console.log("Payslip PDF:", d.payslip_pdf);
   if (d.payslip_pdf) {
     document.getElementById("pSlipLink").href = d.payslip_pdf;
     sb.style.display = "block";
