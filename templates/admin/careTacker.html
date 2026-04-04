@@ -6,6 +6,24 @@ content %}
   <div class="d-flex p-3 justify-content-between align-items-center">
     <h5 class="mb-0 text-md">Nurses</h5>
     <div class="d-flex gap-2">
+      <form method="get" class="d-flex gap-2">
+        <input
+          type="text"
+          name="search"
+          value="{{ search }}"
+          placeholder="Search by name, phone, email"
+          class="form-control"
+          style="min-width: 260px"
+        />
+        <button type="submit" class="btn btn-outline-secondary btn-sm">
+          Search
+        </button>
+        {% if search %}
+        <a href="/admin/caretacker" class="btn btn-outline-secondary btn-sm">
+          Clear
+        </a>
+        {% endif %}
+      </form>
       <!-- <a href="/admin/consent" class="btn btn-sm btn-outline-secondary">
         📄 Nurse Consent
       </a> -->
@@ -151,7 +169,7 @@ content %}
       </tr>
       {% endfor %} {% else %}
       <tr>
-        <td colspan="6" class="text-center text-muted">No caretakers found</td>
+        <td colspan="7" class="text-center text-muted">No caretakers found</td>
       </tr>
       {% endif %}
     </tbody>

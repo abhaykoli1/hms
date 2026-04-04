@@ -230,6 +230,7 @@ class PatientDailyNote(Document):
     patient = ReferenceField(PatientProfile)
     nurse = ReferenceField(NurseProfile)
 
+    title = StringField(default="Daily Note")
     note = StringField()
     created_at = DateTimeField(default=datetime.utcnow)
 
@@ -559,6 +560,7 @@ class UserEquipmentRequest(Document):
     equipment = ReferenceField(EquipmentTable, required=True)
     status = BooleanField(default=False)
     day_duration = IntField(default=1)
+    price_per_day = FloatField(default=0)
 
 class UserJoiningFees(Document):
     amount = IntField(required=True, default=99)
@@ -573,6 +575,4 @@ class AllPaymentsHistory(Document):
     )
     order_id = StringField(required=True)
     payment_id = StringField()
-
-
 

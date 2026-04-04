@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from http.client import HTTPException
 import json
 from typing import List, Optional
-from core.dependencies import get_current_user , role_required
+from core.dependencies import admin_required, get_current_user , role_required
 from fastapi import APIRouter, Request , Depends
 from fastapi.params import Form
 from pydantic import BaseModel
@@ -343,15 +343,62 @@ def create_patient_page(request: Request):
 @router.get("/nurses", response_class=HTMLResponse)
 def nurses(
     request: Request,
+    search: str | None = None,
     user = Depends(role_required(["ADMIN", "NURSE"]))
 ):
-    nurses_qs = NurseProfile.objects(created_by="ADMIN").select_related()
+    nurses_query = Q(created_by="ADMIN")
+
+    if search:
+        matched_users = User.objects(
+            Q(role="NURSE") &
+            (
+                Q(name__icontains=search) |
+                Q(phone__icontains=search) |
+                Q(email__icontains=search)
+            )
+        )
+        nurses_query &= Q(user__in=matched_users)
+
+    nurses_qs = NurseProfile.objects(nurses_query).select_related()
 
     return templates.TemplateResponse(
         "admin/nurses.html",
         {
             "request": request,
-            "nurses": nurses_qs
+            "nurses": nurses_qs,
+            "search": search or ""
+        }
+    )
+
+
+@router.get("/nurses/blocked", response_class=HTMLResponse)
+def blocked_nurses(
+    request: Request,
+    search: str | None = None,
+    admin=Depends(admin_required)
+):
+    blocked_user_query = Q(role="NURSE", is_active=False)
+
+    if search:
+        blocked_user_query &= (
+            Q(name__icontains=search) |
+            Q(phone__icontains=search) |
+            Q(email__icontains=search)
+        )
+
+    blocked_users = User.objects(blocked_user_query)
+
+    nurses_qs = NurseProfile.objects(
+        user__in=blocked_users,
+        nurse_type__ne="CARETAKER"
+    ).select_related()
+
+    return templates.TemplateResponse(
+        "admin/blocked_nurses.html",
+        {
+            "request": request,
+            "nurses": nurses_qs,
+            "search": search or ""
         }
     )
 
@@ -911,7 +958,7 @@ def view_patient_details(request: Request, patient_id: str):
         try:
             equip       = eq_req.equipment          # ReferenceField → EquipmentTable
             days        = eq_req.day_duration or 1
-            price_per_day = equip.price or 0.0
+            price_per_day = eq_req.price_per_day or equip.price or 0.0
             total_cost  = days * price_per_day
  
             total_equipment_cost += total_cost
@@ -1077,13 +1124,26 @@ def medicine_master_page(
 
 
 @router.get("/staff/manage", response_class=HTMLResponse)
-def staff_manage_page(request: Request):
-    staff = User.objects(role="STAFF").order_by("-created_at")
+def staff_manage_page(
+    request: Request,
+    search: str | None = None
+):
+    staff_query = Q(role="STAFF")
+
+    if search:
+        staff_query &= (
+            Q(name__icontains=search) |
+            Q(phone__icontains=search) |
+            Q(email__icontains=search)
+        )
+
+    staff = User.objects(staff_query).order_by("-created_at")
     return templates.TemplateResponse(
         "admin/staff_manage.html",
         {
             "request": request,
-            "staff": staff
+            "staff": staff,
+            "search": search or ""
         }
     )
 
@@ -1289,14 +1349,29 @@ def edit_nurse(nurse_id: str, request: Request):
 @router.get("/caretacker", response_class=HTMLResponse)
 def nurses(
     request: Request,
+    search: str | None = None,
     user = Depends(role_required(["ADMIN", "NURSE"]))
 ):
-    nurses_qs = NurseProfile.objects( nurse_type="CARETAKER").select_related()
+    nurses_query = Q(nurse_type="CARETAKER")
+
+    if search:
+        matched_users = User.objects(
+            Q(role="NURSE") &
+            (
+                Q(name__icontains=search) |
+                Q(phone__icontains=search) |
+                Q(email__icontains=search)
+            )
+        )
+        nurses_query &= Q(user__in=matched_users)
+
+    nurses_qs = NurseProfile.objects(nurses_query).select_related()
 
     return templates.TemplateResponse(
         "admin/careTacker.html",
         {
             "request": request,
-            "nurses": nurses_qs
+            "nurses": nurses_qs,
+            "search": search or ""
         }
     )

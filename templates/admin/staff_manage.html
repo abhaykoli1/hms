@@ -5,14 +5,40 @@
   <!-- ================= HEADER ================= -->
   <div class="flex justify-between items-center px-3 py-2">
     <h5 class="text-lg font-semibold">Staff Management</h5>
+    <div class="flex items-center gap-2">
+      <form method="get" class="flex items-center gap-2">
+        <input
+          type="text"
+          name="search"
+          value="{{ search }}"
+          placeholder="Search by name, phone, email"
+          class="border rounded-xl px-3 py-2 text-sm"
+          style="min-width: 260px"
+        />
+        <button
+          type="submit"
+          class="px-3 py-2 rounded-xl border text-sm hover:bg-gray-50"
+        >
+          Search
+        </button>
+        {% if search %}
+        <a
+          href="/admin/staff/manage"
+          class="px-3 py-2 rounded-xl border text-sm hover:bg-gray-50"
+        >
+          Clear
+        </a>
+        {% endif %}
+      </form>
 
-    <button
-      onclick="openCreateModal()"
-      class="bg-green-500 text-white px-3 py-2 rounded-xl hover:bg-green-600 flex items-center gap-2"
-    >
-      <i data-lucide="user-plus" class="w-4 h-4"></i>
-      Add Staff
-    </button>
+      <button
+        onclick="openCreateModal()"
+        class="bg-green-500 text-white px-3 py-2 rounded-xl hover:bg-green-600 flex items-center gap-2"
+      >
+        <i data-lucide="user-plus" class="w-4 h-4"></i>
+        Add Staff
+      </button>
+    </div>
   </div>
 
   <!-- ================= TABLE ================= -->

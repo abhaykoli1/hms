@@ -849,6 +849,7 @@ class VitalsPayload(BaseModel):
     other: Optional[str] = None
     
 class DailyNotePayload(BaseModel):
+    title: Optional[str] = None
     note: str
 
 
@@ -991,6 +992,7 @@ def add_daily_note(
     PatientDailyNote(
         patient=patient,
         nurse=nurse,
+        title=(payload.title or "Daily Note").strip() or "Daily Note",
         note=payload.note,
         created_at=datetime.utcnow()
     ).save()
@@ -1010,6 +1012,7 @@ def get_notes(patient_id: str, user=Depends(get_current_user)):
 
     return [
         {
+            "title": n.title or "Daily Note",
             "note": n.note,
             "created_at": n.created_at
         }

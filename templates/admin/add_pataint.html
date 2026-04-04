@@ -167,6 +167,7 @@
     <thead>
     <tr>
     <th>Equipment</th>
+    <th>Price / Day</th>
     <th>Days</th>
     <th width="80">Action</th>
     </tr>
@@ -354,6 +355,16 @@ function equipmentDropdown(){
   return options;
 }
 
+function getEquipmentPrice(equipmentId){
+  const selected = equipmentOptions.find((e) => e.id === equipmentId);
+  return selected ? Number(selected.price || 0) : 0;
+}
+
+function onEquipmentChange(selectEl){
+  const row = selectEl.closest("tr");
+  const priceInput = row.querySelector(".price-input");
+  priceInput.value = getEquipmentPrice(selectEl.value).toFixed(2);
+}
 
 function addRow(){
 
@@ -361,9 +372,18 @@ function addRow(){
   <tr>
 
     <td>
-      <select class="form-control equipment-select">
+      <select class="form-control equipment-select" onchange="onEquipmentChange(this)">
         ${equipmentDropdown()}
       </select>
+    </td>
+
+    <td>
+      <input type="number"
+        class="form-control price-input"
+        value="0"
+        min="0"
+        step="0.01"
+      >
     </td>
 
     <td>
@@ -408,12 +428,14 @@ async function submitEquipment(){
   rows.forEach(r => {
 
     const eq = r.querySelector(".equipment-select").value;
+    const price = parseFloat(r.querySelector(".price-input").value) || 0;
     const days = r.querySelector(".duration-input").value;
 
     if(eq){
       equipments.push({
         equipment_id: eq,
-        day_duration: parseInt(days)
+        day_duration: parseInt(days),
+        price_per_day: price
       });
     }
 

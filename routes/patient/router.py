@@ -781,6 +781,7 @@ def serialize_duty(duty):
 def serialize_note(n):
     return {
         "id": str(n.id),
+        "title": getattr(n, "title", None) or "Daily Note",
         "note": n.note,
         "time": n.created_at,
         "nurse_name": n.nurse.user.name if n.nurse else None,
@@ -1160,6 +1161,7 @@ def delete_request(request_id: str):
 class EquipmentRow(BaseModel):
     equipment_id: str
     day_duration: int
+    price_per_day: float
 
 class AssignEquipmentSchema(BaseModel):
     patient_id: str
@@ -1187,7 +1189,8 @@ async def assign_equipment(data: AssignEquipmentSchema):
             patient=patient,
             equipment=equipment,
             status=True,
-            day_duration=row.day_duration
+            day_duration=row.day_duration,
+            price_per_day=row.price_per_day
         )
 
         req.save()
