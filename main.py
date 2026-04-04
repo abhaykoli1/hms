@@ -1,7 +1,7 @@
 import os
 from core.dependencies import get_current_user, get_current_user_from_cookie
 from fastapi import FastAPI , Depends ,Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 
 from fastapi.staticfiles import StaticFiles
 from core.database import init_db
@@ -107,6 +107,14 @@ app.include_router(paymentRouter)
 app.include_router(hospital_router)
 app.include_router(aadharRouter)
 app.include_router(pdfSalaryRouter)
+@app.get("/download/download-apk")
+def download_apk():
+    file_path = "apk/app-release.apk"
+    return FileResponse(
+        path=file_path,
+        filename="app-release.apk",
+        media_type="application/vnd.android.package-archive"
+    )
 @app.on_event("startup")
 def startup_event():
     create_default_admin()
