@@ -1,37 +1,46 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from datetime import datetime
+from .schemas import (
+    SendOTPRequest, VerifyOTPRequest,
+    PasswordLoginRequest
+)
+
 from fastapi.responses import JSONResponse
 import requests
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from models import User
-from core.security import create_access_token
+from core.security import create_access_token, verify_password
 from core.dependencies import get_current_user, admin_required
 
-# ================= CONFIG =================
-API_KEY = "dfd091ab0abebbbe28c5fb4bcc3bd8d9"
-BASE_URL = "https://connect.muzztech.com/api/V1"
 
-TEST_PHONE = "8104144303"
-TEST_OTP = "123456"
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
-
-# ================= SCHEMAS =================
-class SendOTPRequest(BaseModel):
-    phone: str
-
-class VerifyOTPRequest(BaseModel):
-    phone: str
-    otp: str
-    token: str = ""
 
 class TokenResponse(BaseModel):
     access_token: str
     role: str
     token_type: str = "bearer"
 
-# ================= SEND OTP =================
+
+API_KEY = "dfd091ab0abebbbe28c5fb4bcc3bd8d9"
+BASE_URL = "https://connect.muzztech.com/api/V1"
+
+router = APIRouter(prefix="/auth", tags=["Auth"])
+
+TEST_PHONE = "8104144303"
+TEST_OTP = "123456"
+
+# @router.post("/send-otp")
+# def send_otp(data: SendOTPRequest):
+#     # Dev / Testing OTP
+#     return {
+#         "message": f"OTP sent to {data.phone}",
+#         "otp": STATIC_OTP  # remove in production
+#     }
+
+def normalize_phone(phone: str):
+    phone = phone.replace("+91", "").replace(" ", "")
+    return phone
 @router.post("/send-otp")
 def send_otp(data: SendOTPRequest):
 
@@ -74,8 +83,50 @@ def send_otp(data: SendOTPRequest):
 
     return {"message": "OTP sent successfully"}
 
+# @router.post("/send-otp")
+# def send_otp(data: SendOTPRequest):
 
-# ================= VERIFY OTP =================
+#     normalized_phone = normalize_phone(data.phone)
+
+#     if normalized_phone == TEST_PHONE:
+#         return {
+#             "message": "Test OTP sent",
+#             "otp": TEST_OTP
+#         }
+
+# @router.post("/verify-otp")
+# def verify_otp(data: VerifyOTPRequest):
+
+#     normalized_phone = normalize_phone(data.phone)
+
+#     user = User.objects(phone=data.phone).first()
+
+#     if not user:
+#         raise HTTPException(404, "User not found")
+
+#     # ✅ Fixed OTP logic
+#     if normalized_phone == TEST_PHONE and data.otp == TEST_OTP:
+
+#         user.otp_verified = True
+#         user.otp_session = None
+#         user.last_login = datetime.utcnow()
+#         user.token_version += 1
+#         user.save()
+
+#         token = create_access_token(
+#             {
+#                 "user_id": str(user.id),
+#                 "role": user.role
+#             },
+#             user.token_version
+#         )
+
+#         return {
+#             "access_token": token,
+#             "role": user.role,
+#             "token_type": "bearer"
+#         }
+
 @router.post("/verify-otp")
 def verify_otp(data: VerifyOTPRequest):
 
@@ -149,7 +200,48 @@ def verify_otp(data: VerifyOTPRequest):
     }
 
 
-# ================= USER =================
+
+
+@router.post("/login-password", response_model=TokenResponse)
+def login_password(data: PasswordLoginRequest):
+    user = User.objects(phone=data.phone).first()
+
+    if not user or not user.password_hash:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
+
+    if data.password != user.password_hash:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
+    # if not verify_password(data.password, user.password_hash):
+    #     raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid credentials")
+
+    if not user.is_active:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "User blocked")
+
+    user.last_login = datetime.utcnow()
+    user.save()
+
+    token = create_access_token(
+        {
+            "user_id": str(user.id),
+            "role": user.role
+        },
+        user.token_version
+    )
+
+    response = JSONResponse({
+        "access_token": token,
+        "role": user.role
+    })
+
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        samesite="lax"
+    )
+
+    return response
+
 @router.get("/me")
 def me(user: User = Depends(get_current_user)):
     return {
@@ -160,14 +252,10 @@ def me(user: User = Depends(get_current_user)):
         "last_login": user.last_login
     }
 
-
-# ================= LOGOUT =================
 @router.post("/logout")
 def logout():
-    return {"message": "Logout successful"}
+    return {"message": "Logout successful (client-side token delete)"}
 
-
-# ================= ADMIN =================
 @router.post("/admin/block-user")
 def block_user(user_id: str, admin: User = Depends(admin_required)):
     user = User.objects(id=user_id).first()
@@ -177,6 +265,7 @@ def block_user(user_id: str, admin: User = Depends(admin_required)):
     user.is_active = False
     user.save()
     return {"message": "User blocked successfully"}
+
 
 
 @router.post("/admin/unblock-user")
@@ -190,10 +279,10 @@ def unblock_user(user_id: str, admin: User = Depends(admin_required)):
     return {"message": "User unblocked successfully"}
 
 
-# ================= PASSWORD =================
+
 class UpdatePasswordRequest(BaseModel):
     phone: str
-    password: str
+    password: str   # single field only
 
 @router.post("/update-password")
 def update_password(data: UpdatePasswordRequest):
@@ -203,7 +292,10 @@ def update_password(data: UpdatePasswordRequest):
     if not user:
         raise HTTPException(404, "User not found")
 
+    # ✅ direct update (no old password check)
     user.password_hash = data.password
+
+    # logout all sessions
     user.token_version += 1
     user.save()
 
