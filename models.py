@@ -65,6 +65,12 @@ class NurseProfile(Document):
     payslips = ListField(StringField(), default=list)
     joining_date = DateField()
     resignation_date = DateField()
+    account_holder_name = StringField(required=False)
+    bank_name = StringField(required=False)
+    branch_name = StringField(required=False)
+    account_number = StringField(required=False)
+    ifsc_code = StringField(required=False)
+    upi_id = StringField(required=False)
 
     verification_status = StringField(
         choices=["PENDING", "APPROVED", "REJECTED"],
@@ -575,4 +581,3 @@ class AllPaymentsHistory(Document):
     )
     order_id = StringField(required=True)
     payment_id = StringField()
-

@@ -50,6 +50,30 @@
   </div>
 </div>
 
+<div class="bg-card mb-3 p-3 border border-gray-50/20 rounded-2xl shadow-soft4">
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <h5 class="mb-0">Account Information</h5>
+    {% if consent %}
+    <span class="badge bg-light text-dark">
+      Payment Mode: {{ consent.payment_mode or "-" }}
+    </span>
+    {% endif %}
+  </div>
+
+  {% if nurse.account_holder_name or nurse.bank_name or nurse.branch_name or nurse.account_number or nurse.ifsc_code or nurse.upi_id %}
+  <div class="row">
+    <div class="col-md-4 mb-2"><b>Account Holder:</b> {{ nurse.account_holder_name or "-" }}</div>
+    <div class="col-md-4 mb-2"><b>Bank Name:</b> {{ nurse.bank_name or "-" }}</div>
+    <div class="col-md-4 mb-2"><b>Branch Name:</b> {{ nurse.branch_name or "-" }}</div>
+    <div class="col-md-4 mb-2"><b>Account Number:</b> {{ nurse.account_number or "-" }}</div>
+    <div class="col-md-4 mb-2"><b>IFSC Code:</b> {{ nurse.ifsc_code or "-" }}</div>
+    <div class="col-md-4 mb-2"><b>UPI ID:</b> {{ nurse.upi_id or "-" }}</div>
+  </div>
+  {% else %}
+  <p class="text-muted mb-0">No account information added yet.</p>
+  {% endif %}
+</div>
+
 
 <!-- ═══════════════════════════════════════════════════════
      SECTION 2 — KPI CARDS  (Attendance + Salary quick view)

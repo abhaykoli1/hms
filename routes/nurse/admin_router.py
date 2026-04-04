@@ -236,6 +236,12 @@ def update_nurse_admin(
     digital_signature_verify: bool = Form(False),
     police: Optional[List[str]] = Form(None),  # ✅ FIXED
     hospital: str | None = Form(None),
+    account_holder_name: str | None = Form(None),
+    bank_name: str | None = Form(None),
+    branch_name: str | None = Form(None),
+    account_number: str | None = Form(None),
+    ifsc_code: str | None = Form(None),
+    upi_id: str | None = Form(None),
 ):
     nurse = NurseProfile.objects(id=nurse_id).first()
     if not nurse:
@@ -248,6 +254,12 @@ def update_nurse_admin(
     nurse.joining_date = date.fromisoformat(joining_date) if joining_date else None
     nurse.resignation_date = date.fromisoformat(resignation_date) if resignation_date else None
     nurse.digital_signature_verify = digital_signature_verify
+    nurse.account_holder_name = account_holder_name or ""
+    nurse.bank_name = bank_name or ""
+    nurse.branch_name = branch_name or ""
+    nurse.account_number = account_number or ""
+    nurse.ifsc_code = ifsc_code or ""
+    nurse.upi_id = upi_id or ""
     # Experience letter (single file)
     if experience_letter:
         nurse.experience_letter = experience_letter
