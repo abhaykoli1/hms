@@ -29,14 +29,6 @@ IST = ZoneInfo("Asia/Kolkata")
 def ist_now():
     return datetime.now(IST)
 
-# BASE_URL = "https://wecarehhcs.in"
-
-# def with_domain(path: str | None):
-#     if not path:
-#         return None
-#     if path.startswith("http"):
-#         return path
-#     return f"{BASE_URL}{path}"
 
 class NurseCreateRequest(BaseModel):
     phone: str = Field(..., example="9876543210")
@@ -577,7 +569,7 @@ def nurse_dashboard(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Nurse profile not found")
 
     today = date.today()
-    now = datetime.utcnow()
+    now = datetime.ist_now()
 
     # 3️⃣ Attendance (today)
     attendance = NurseAttendance.objects(
@@ -674,7 +666,7 @@ def update_location(
     NurseLiveLocation.objects(nurse=nurse).update_one(
         set__latitude=payload["latitude"],
         set__longitude=payload["longitude"],
-        set__updated_at=datetime.utcnow(),
+        set__updated_at=datetime.ist_now(),
         upsert=True
     )
 
@@ -820,7 +812,7 @@ def get_patient_dashboard(patient_id: str, user=Depends(get_current_user)):
 #         spo2=payload.spo2,
 #         temperature=payload.temperature,
 #         sugar=payload.sugar,
-#         recorded_at=datetime.utcnow()
+#         recorded_at=datetime.ist_now()
 #     ).save()
 
 #     return {"message": "Vitals saved successfully"}
@@ -892,7 +884,7 @@ def create_vitals(
         # 🔹 NOTES
         other=payload.other,
 
-        recorded_at=datetime.utcnow()
+        recorded_at=datetime.ist_now()
     )
 
     vitals.save()
@@ -994,7 +986,7 @@ def add_daily_note(
         nurse=nurse,
         title=(payload.title or "Daily Note").strip() or "Daily Note",
         note=payload.note,
-        created_at=datetime.utcnow()
+        created_at=datetime.ist_now()
     ).save()
 
     return {"message": "Note saved"}
@@ -1510,7 +1502,7 @@ def sign_consent(
     # ✅ Save signature and mark consent as signed
     consent.signature_image = payload.signature_image
     consent.status = "SIGNED"
-    consent.signed_at = datetime.utcnow()
+    consent.signed_at = datetime.ist_now()
     consent.save()
 
     return {
@@ -1607,7 +1599,7 @@ def log_visit(nurse_id: str, payload: dict):
         ward=payload.get("ward"),
         room_no=payload.get("room_no", ""),
         visit_type=payload["visit_type"],
-        visit_time=datetime.utcnow(),
+        visit_time=datetime.ist_now(),
         created_by=nurse.user
     )
     visit.save()
@@ -1623,7 +1615,7 @@ def my_nurse_profile(current_user=Depends(get_current_user), month: str = None):
     user = nurse.user
 
     if month is None:
-        month = datetime.utcnow().strftime("%Y-%m")
+        month = datetime.ist_now().strftime("%Y-%m")
 
     try:
         year, mon = map(int, month.split("-"))

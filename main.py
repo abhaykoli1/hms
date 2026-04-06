@@ -44,7 +44,7 @@ app.add_middleware(
         "http://localhost:8000",
         "http://192.0.0.2:8000",
         "https://wecarehhcs.in",
-        "https://7cdss4vm-8005.inc1.devtunnels.ms"
+        # "https://7cdss4vm-8005.inc1.devtunnels.ms"
     ],
     allow_credentials=True,
     allow_methods=["*"],

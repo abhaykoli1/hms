@@ -595,6 +595,8 @@ def add_daily_note(patient_id: str, payload: dict):
     ).save()
 
     return {"success": True, "message": "Daily note added"}
+
+
 @router.post("/{patient_id}/vitals")
 def add_patient_vitals(patient_id: str, payload: dict):
     patient = PatientProfile.objects(id=patient_id).first()
@@ -611,12 +613,12 @@ def add_patient_vitals(patient_id: str, payload: dict):
     ).save()
 
     return {"success": True, "message": "Vitals recorded"}
+
 @router.get("/nurses/list")
 def list_nurses():
     nurses = NurseProfile.objects(
         verification_status="APPROVED"
     )
-
     return [
         {
             "id": str(n.id),
@@ -812,14 +814,6 @@ def serialize_vital(v):
     }
 
 
-# def serialize_medication(m):
-#     return {
-#         "medicine": m.medicine_name,
-#         "dosage": m.dosage,
-#         "timing": m.timing,
-#         "duration": m.duration_days,
-#         "price": m.price,
-#     }
 
 def serialize_medication(m):
     return {
