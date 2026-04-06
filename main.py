@@ -44,7 +44,7 @@ app.add_middleware(
         "http://localhost:8000",
         "http://192.0.0.2:8000",
         "https://wecarehhcs.in",
-        "https://7cdss4vm-8000.inc1.devtunnels.ms"
+        "https://7cdss4vm-8005.inc1.devtunnels.ms"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -115,6 +115,20 @@ def download_apk():
         filename="app-release.apk",
         media_type="application/vnd.android.package-archive"
     )
+
+from datetime import datetime
+import pytz
+
+@app.get("/check-time")
+def check_time():
+    ist = pytz.timezone("Asia/Kolkata")
+
+    return {
+        "utc_time": datetime.utcnow().isoformat(),
+        "server_time": datetime.now().isoformat(),
+        "ist_time": datetime.now(ist).isoformat()
+    }
+
 @app.on_event("startup")
 def startup_event():
     create_default_admin()
