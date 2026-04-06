@@ -25,18 +25,12 @@ import calendar
 from core.utils.files import with_domain
 
 IST = ZoneInfo("Asia/Kolkata")
+print("Current IST time:", datetime.now(IST))
 
 def ist_now():
     return datetime.now(IST)
 
-# BASE_URL = "https://wecarehhcs.in"
 
-# def with_domain(path: str | None):
-#     if not path:
-#         return None
-#     if path.startswith("http"):
-#         return path
-#     return f"{BASE_URL}{path}"
 
 class NurseCreateRequest(BaseModel):
     phone: str = Field(..., example="9876543210")
@@ -509,6 +503,7 @@ def duty_check_out(user=Depends(get_current_user)):
 def my_salary(user=Depends(get_current_user)):
     nurse = NurseProfile.objects(user=user).first()
     return NurseSalary.objects(nurse=nurse)
+
 @router.post("/salary/advance-request")
 def advance_request(amount: float, user=Depends(get_current_user)):
     nurse = NurseProfile.objects(user=user).first()
@@ -773,7 +768,6 @@ def get_nurse_patients(user=Depends(get_current_user)):
 
 @router.get("/patients/{patient_id}")
 def get_patient_dashboard(patient_id: str, user=Depends(get_current_user)):
-
     if user.role != "NURSE":
         raise HTTPException(403, "Access denied")
 
