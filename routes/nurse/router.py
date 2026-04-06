@@ -29,6 +29,14 @@ IST = ZoneInfo("Asia/Kolkata")
 def ist_now():
     return datetime.now(IST)
 
+# BASE_URL = "https://wecarehhcs.in"
+
+# def with_domain(path: str | None):
+#     if not path:
+#         return None
+#     if path.startswith("http"):
+#         return path
+#     return f"{BASE_URL}{path}"
 
 class NurseCreateRequest(BaseModel):
     phone: str = Field(..., example="9876543210")
@@ -569,7 +577,7 @@ def nurse_dashboard(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Nurse profile not found")
 
     today = date.today()
-    now = datetime.ist_now()
+    now = datetime.utcnow()
 
     # 3️⃣ Attendance (today)
     attendance = NurseAttendance.objects(
@@ -812,7 +820,7 @@ def get_patient_dashboard(patient_id: str, user=Depends(get_current_user)):
 #         spo2=payload.spo2,
 #         temperature=payload.temperature,
 #         sugar=payload.sugar,
-#         recorded_at=datetime.ist_now()
+#         recorded_at=datetime.utcnow()
 #     ).save()
 
 #     return {"message": "Vitals saved successfully"}
@@ -1502,7 +1510,7 @@ def sign_consent(
     # ✅ Save signature and mark consent as signed
     consent.signature_image = payload.signature_image
     consent.status = "SIGNED"
-    consent.signed_at = datetime.ist_now()
+    consent.signed_at = datetime.utcnow()
     consent.save()
 
     return {
@@ -1615,7 +1623,7 @@ def my_nurse_profile(current_user=Depends(get_current_user), month: str = None):
     user = nurse.user
 
     if month is None:
-        month = datetime.ist_now().strftime("%Y-%m")
+        month = datetime.utcnow().strftime("%Y-%m")
 
     try:
         year, mon = map(int, month.split("-"))
