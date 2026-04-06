@@ -674,7 +674,7 @@ def update_location(
     NurseLiveLocation.objects(nurse=nurse).update_one(
         set__latitude=payload["latitude"],
         set__longitude=payload["longitude"],
-        set__updated_at=datetime.ist_now(),
+        set__updated_at=ist_now(),
         upsert=True
     )
 
@@ -892,7 +892,7 @@ def create_vitals(
         # 🔹 NOTES
         other=payload.other,
 
-        recorded_at=datetime.ist_now()
+        recorded_at=ist_now()
     )
 
     vitals.save()
@@ -994,7 +994,7 @@ def add_daily_note(
         nurse=nurse,
         title=(payload.title or "Daily Note").strip() or "Daily Note",
         note=payload.note,
-        created_at=datetime.ist_now()
+        created_at=ist_now()
     ).save()
 
     return {"message": "Note saved"}
@@ -1607,7 +1607,7 @@ def log_visit(nurse_id: str, payload: dict):
         ward=payload.get("ward"),
         room_no=payload.get("room_no", ""),
         visit_type=payload["visit_type"],
-        visit_time=datetime.ist_now(),
+        visit_time=ist_now(),
         created_by=nurse.user
     )
     visit.save()
