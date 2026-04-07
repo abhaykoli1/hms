@@ -18,7 +18,14 @@ content %}
 
   <div class="d-flex p-3 justify-content-between align-items-center">
     <h5 class="mb-0 text-md">Patients</h5>
-
+    <input
+    type="text"
+    id="patientSearch"
+    placeholder="Search patient..."
+    class="form-control form-control-sm"
+    style="width:200px"
+    onkeyup="filterPatients()"
+  />
     <div class="d-flex gap-2">
       <button
         class="bg-success -500 text-white px-2 py-1.5 !rounded-xl hover:bg-success -600 transition-colors"
@@ -33,7 +40,7 @@ content %}
     <!-- TABLE -->
     <table class="table table-hover overflow-auto align-middle">
       <thead class="table-light">
-        <tr>
+        <tr class="patient-row">
           <th class="min-w-80">Patient Name</th>
           <!-- <th>Age</th> -->
           <th>Gender</th>
@@ -117,5 +124,20 @@ content %}
     </table>
   </div>
 </div>
+<script>
+function filterPatients() {
+  const input = document.getElementById("patientSearch").value.toLowerCase();
+  const rows = document.querySelectorAll(".patient-row");
 
+  rows.forEach(row => {
+    const text = row.innerText.toLowerCase();
+
+    if (text.includes(input)) {
+      row.style.display = "";
+    } else {
+      row.style.display = "none";
+    }
+  });
+}
+</script>
 {% endblock %}

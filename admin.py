@@ -32,6 +32,12 @@ def admin_home(request: Request):
 #     return templates.TemplateResponse(
 #         "admin/login.html", {"request": request}
 #     )
+@router.get("/lead/create", response_class=HTMLResponse)
+def admin_login(request: Request):
+    return templates.TemplateResponse(
+        "admin/lead_create.html",
+        {"request": request}
+    )
 @router.get("/login", response_class=HTMLResponse)
 def admin_login(request: Request):
     return templates.TemplateResponse(

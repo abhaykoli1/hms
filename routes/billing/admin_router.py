@@ -74,7 +74,7 @@ def generate_bill_pdf(bill, gst_percent: float = 0):
 
     logo = ""
     if os.path.exists(logo_path):
-        logo = Image(logo_path, width=2 * inch, height=.8 * inch)
+        logo = Image(logo_path, width=2 * inch, height=1 * inch)
 
 
     header_style = ParagraphStyle(

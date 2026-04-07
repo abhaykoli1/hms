@@ -200,8 +200,9 @@ async function createEquipment() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       title,
-      price: parseFloat(document.getElementById("editPrice").value),
+      
       image: uploadData.path,
+      price: parseFloat(document.getElementById("price").value),
     }),
   });
 

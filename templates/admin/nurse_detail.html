@@ -459,16 +459,16 @@
     </div>
     <div class="col-md6">
       <ul>
-        {% for doc in nurse.experience_docs %}
-        <li>
-          <a href="https://wecarehhcs.in{{ doc }}" target="_blank"
-            class="border font-semibold border-gray-50 px-3 py-2 mt-2 rounded-lg bg-green-600 text-white">
-            Experience
-          </a>
-        </li>
-        {% else %}
-        <li class="text-muted">No document</li>
-        {% endfor %}
+         {% if nurse.experience_letter %}
+         <li>
+           <a href="https://wecarehhcs.in{{ nurse.experience_letter }}" target="_blank"
+             class="border font-semibold border-gray-50 px-3 py-2 mt-2 rounded-lg bg-green-600 text-white">
+             Experience
+           </a>
+         </li>
+         {% else %}
+         <li class="text-muted">No document</li>
+         {% endif %}
       </ul>
     </div>
     <div class="col-md6">

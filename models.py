@@ -58,6 +58,7 @@ class NurseProfile(Document):
     aadharData = DictField(required=False)
     qualification_docs = ListField(StringField())
     experience_docs = ListField(StringField())
+    experience_letter=StringField(required=False)
     medical_docs = ListField(StringField(required=False))
     profile_photo = StringField()
     digital_signature = StringField()
@@ -581,3 +582,22 @@ class AllPaymentsHistory(Document):
     )
     order_id = StringField(required=True)
     payment_id = StringField()
+
+
+
+
+class Lead(Document):
+    name = StringField(required=True)
+    phone = StringField(required=True)
+    gender = StringField()
+    age = IntField()
+    city = StringField(required=True)
+    address = StringField(required=True)
+    service = StringField(required=True)
+    source = StringField(required=True)
+    notes = StringField()
+
+    status = StringField(default="NEW")  # NEW / CONTACTED / CONVERTED
+
+    created_at = DateTimeField()
+    

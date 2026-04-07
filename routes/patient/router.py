@@ -17,6 +17,8 @@ from mongoengine.errors import NotUniqueError ,ValidationError
 from pydantic import BaseModel, EmailStr
 from routes.auth.schemas import EquipmentCreate, EquipmentRequestCreate, EquipmentRequestUpdate, EquipmentUpdate
 
+from zoneinfo import ZoneInfo
+
 router = APIRouter(prefix="/patient", tags=["Patient"])
 
 equipment_router = APIRouter(prefix="/equipment")
@@ -320,6 +322,7 @@ def update_patient_document(
         "success": True,
         "documents": patient.documents
     }
+
 @router.delete("/{patient_id}/delete-document")
 def delete_patient_document(
     patient_id: str,
@@ -389,10 +392,12 @@ def my_profile(user=Depends(get_current_user)):
 def daily_notes(user=Depends(get_current_user)):
     patient = PatientProfile.objects(user=user).first()
     return PatientDailyNote.objects(patient=patient)
+
 @router.get("/vitals/history")
 def vitals_history(user=Depends(get_current_user)):
     patient = PatientProfile.objects(user=user).first()
     return PatientVitals.objects(patient=patient)
+
 @router.get("/medication/list")
 def medication_list(user=Depends(get_current_user)):
     patient = PatientProfile.objects(user=user).first()
@@ -414,6 +419,7 @@ def add_note(
         nurse=nurse,
         note=note
     ).save()
+
 @router.post("/nurse/patient/vitals/add")
 def add_vitals(
     patient_id: str,
@@ -780,12 +786,25 @@ def serialize_duty(duty):
             "phone": duty.nurse.user.phone,
         }
     }
+
+
+
+def to_ist(dt):
+    if not dt:
+        return None
+
+    # 🔥 agar timezone missing hai (naive datetime)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=ZoneInfo("UTC"))
+
+    return dt.astimezone(ZoneInfo("Asia/Kolkata"))
+
 def serialize_note(n):
     return {
         "id": str(n.id),
         "title": getattr(n, "title", None) or "Daily Note",
         "note": n.note,
-        "time": n.created_at,
+        "time": to_ist(n.created_at).strftime("%d %b %Y %I:%M %p"),
         "nurse_name": n.nurse.user.name if n.nurse else None,
     }
 

@@ -9,11 +9,12 @@ from bson import ObjectId
 
 from core.dependencies import get_current_user
 from models import (
-    AboutUs, DoctorProfile, NurseLiveLocation, NurseProfile, NurseDuty, NurseAttendance,
+    AboutUs, DoctorProfile, Lead, NurseLiveLocation, NurseProfile, NurseDuty, NurseAttendance,
     NurseSalary, NurseConsent, NurseVisit, PatientProfile, User, PatientVitals, PatientDailyNote, PatientMedication
 )
 
 from routes.auth.schemas import NurseConsentRequest, NurseVisitCreate
+from routes.nurse.schemas import LeadCreateRequest
 from .utils import ensure_consent_active, ensure_duty_time
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
@@ -153,6 +154,13 @@ class NurseSelfSignupRequest(BaseModel):
     profile_photo: Optional[str] = None
     digital_signature: Optional[str] = None
     joining_date: Optional[date] = None
+    account_holder_name: Optional[str] = None
+    account_number: Optional[str] = None
+    ifsc_code: Optional[str] = None
+    branch_name: Optional[str] = None
+    bank_name: Optional[str] = None
+    upi_id: Optional[str] = None
+
    
 
 
@@ -209,14 +217,21 @@ def nurse_self_signup(payload: NurseSelfSignupRequest):
         aadhaar_front=payload.aadhaar_front,
         aadhaar_back=payload.aadhaar_back,
         qualification_docs=payload.qualification_docs,
-        experience_docs=payload.experience_docs,
+        experience_letters=payload.experience_docs[0],
         profile_photo=payload.profile_photo,
         digital_signature=payload.digital_signature,
         joining_date=payload.joining_date,
         verification_status="PENDING",
         police_verification_status="PENDING",
         medical_docs=payload.medical_docs,
-        created_by="SELF"
+        created_by="SELF",
+        account_holder_name=payload.account_holder_name,
+        account_number=payload.account_number,
+        ifsc_code=payload.ifsc_code,
+        branch_name=payload.branch_name,
+        bank_name=payload.bank_name,
+        upi_id=payload.upi_id
+
     ).save()
 
     return NurseResponse(
@@ -1708,5 +1723,58 @@ def my_nurse_profile(current_user=Depends(get_current_user), month: str = None):
                 "patient_id": str(v.patient.id),
                 "visit_time": v.visit_time.strftime("%Y-%m-%d %H:%M")
             } for v in visits
+        ]
+    }
+
+
+@router.post("/lead/create")
+def create_lead(data: LeadCreateRequest):
+
+    try:
+        lead = Lead(
+            name=data.name,
+            phone=data.phone,
+            gender=data.gender,
+            age=data.age,
+            city=data.city,
+            address=data.address,
+            service=data.service,
+            source=data.source,
+            notes=data.notes,
+            created_at=datetime.utcnow()
+        )
+
+        lead.save()
+
+        return {
+            "success": True,
+            "message": "Lead created successfully",
+            "data": {
+                "id": str(lead.id),
+                "name": lead.name
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.get("/lead/all")
+def get_all_leads():
+    leads = Lead.objects().order_by("-created_at")
+
+    return {
+        "success": True,
+        "data": [
+            {
+                "id": str(l.id),
+                "name": l.name,
+                "phone": l.phone,
+                "city": l.city,
+                "service": l.service,
+                "source": l.source,
+                "created_at": l.created_at.strftime("%d %b %Y")
+            }
+            for l in leads
         ]
     }

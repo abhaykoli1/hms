@@ -104,3 +104,15 @@ class PendingItem(BaseModel):
     pending_amount : float
     payslip_pdf    : Optional[str]
  
+
+ 
+class LeadCreateRequest(BaseModel):
+    name: str
+    phone: str
+    gender: Optional[str] = None
+    age: Optional[int] = None
+    city: str
+    address: str
+    service: str
+    source: str
+    notes: Optional[str] = None
