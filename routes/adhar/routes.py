@@ -137,6 +137,24 @@ class AadhaarVerifyRequest(BaseModel):
     user_id: str
     reference_id: str
     otp: str
+
+
+def _is_verified_value(value) -> bool:
+    if value is None:
+        return False
+
+    text = str(value).strip().upper()
+    if not text:
+        return False
+
+    if "INVALID" in text or "FAILED" in text or "EXPIRED" in text:
+        return False
+
+    return any(
+        keyword in text
+        for keyword in ["VALID", "VERIFIED", "SUCCESS", "COMPLETED"]
+    )
+
 @router.post("/verify-otp")
 def verify(
     payload: AadhaarVerifyRequest,
@@ -150,19 +168,27 @@ def verify(
             payload.otp
         )
 
-        if not result or "data" not in result:
+        if not result:
             raise HTTPException(
                 status_code=500,
                 detail="Invalid response from Aadhaar service"
             )
 
-        data = result.get("data", {})
+        data = result.get("data") or {}
+        verification_values = [
+            data.get("status"),
+            data.get("message"),
+            data.get("verification_status"),
+            result.get("status"),
+            result.get("message"),
+            result.get("verification_status"),
+        ]
 
-        # ===== ONLY VALID CASE =====
-        if data.get("status") == "VALID":
+        # ===== SUCCESS CASE =====
+        if any(_is_verified_value(value) for value in verification_values):
             nurse.aadhaar_verified = True
             nurse.aadharData = {
-                "reference_id": data.get("reference_id"),
+                "reference_id": data.get("reference_id") or payload.reference_id,
                 "name": data.get("name"),
                 "date_of_birth": data.get("date_of_birth"),
                 "gender": data.get("gender"),
@@ -179,7 +205,13 @@ def verify(
             }
 
         # ===== ERROR CASES =====
-        msg = data.get("message", "Verification failed")
+        msg = (
+            data.get("message")
+            or result.get("message")
+            or data.get("status")
+            or result.get("status")
+            or "Verification failed"
+        )
 
         error_map = {
             "Invalid OTP": ("INVALID_OTP", "OTP is incorrect"),
