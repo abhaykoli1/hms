@@ -191,57 +191,82 @@ def get_about_us():
 @router.post("/self-signup", response_model=NurseResponse)
 def nurse_self_signup(payload: NurseSelfSignupRequest):
 
-    print(payload)
+    try:
+        existing_user = User.objects(phone=payload.phone).first()
 
-    # ❌ Duplicate check
-    if User.objects(phone=payload.phone).first():
-        raise HTTPException(400, "Phone number already registered")
+        # ============================================================
+        # 🔁 EXISTING USER
+        # ============================================================
+        if existing_user:
+            nurse = NurseProfile.objects(user=existing_user).first()
 
-    # 1️⃣ Create USER
-    user = User(
-        role="NURSE",
-        phone=payload.phone,
-        other_number=payload.other_number,
-        email=payload.email,
-        name=payload.name,
-        password_hash=payload.phone,
-        father_name=payload.father_name,
-        is_active=False,         
-        otp_verified=False
-    ).save()
+            # 🔥 FIX: ensure nurse exists
+            if not nurse:
+                nurse = NurseProfile(
+                    user=existing_user,
+                    nurse_type=payload.nurse_type,
+                    verification_status="PENDING",
+                    police_verification_status="PENDING",
+                    created_by="SELF"
+                ).save()
 
-    # 2️⃣ Create NURSE PROFILE
-    nurse = NurseProfile(
-        user=user,
-        nurse_type=payload.nurse_type,
-        aadhaar_front=payload.aadhaar_front,
-        aadhaar_back=payload.aadhaar_back,
-        qualification_docs=payload.qualification_docs,
-        experience_letters=payload.experience_docs[0],
-        profile_photo=payload.profile_photo,
-        digital_signature=payload.digital_signature,
-        joining_date=payload.joining_date,
-        verification_status="PENDING",
-        police_verification_status="PENDING",
-        medical_docs=payload.medical_docs,
-        created_by="SELF",
-        account_holder_name=payload.account_holder_name,
-        account_number=payload.account_number,
-        ifsc_code=payload.ifsc_code,
-        branch_name=payload.branch_name,
-        bank_name=payload.bank_name,
-        upi_id=payload.upi_id
+            return NurseResponse(
+                nurse_id=str(nurse.id),
+                user_id=str(existing_user.id),
+                verification_status=nurse.verification_status
+            )
 
-    ).save()
+        # ============================================================
+        # 🆕 CREATE USER
+        # ============================================================
+        user = User(
+            role="NURSE",
+            phone=payload.phone,
+            other_number=payload.other_number,
+            email=payload.email,
+            name=payload.name,
+            password_hash=payload.phone,
+            father_name=payload.father_name,
+            is_active=False,
+            otp_verified=False
+        ).save()
 
-    return NurseResponse(
-        nurse_id=str(nurse.id),
-        user_id=str(user.id),
-        verification_status=nurse.verification_status
-    )
+        experience_file = payload.experience_docs[0] if payload.experience_docs else ""
 
+        # ============================================================
+        # 🧾 CREATE NURSE
+        # ============================================================
+        nurse = NurseProfile(
+            user=user,
+            nurse_type=payload.nurse_type,
+            aadhaar_front=payload.aadhaar_front,
+            aadhaar_back=payload.aadhaar_back,
+            qualification_docs=payload.qualification_docs,
+            experience_letters=experience_file,
+            profile_photo=payload.profile_photo,
+            digital_signature=payload.digital_signature,
+            joining_date=payload.joining_date,
+            verification_status="PENDING",
+            police_verification_status="PENDING",
+            medical_docs=payload.medical_docs,
+            created_by="SELF",
+            account_holder_name=payload.account_holder_name,
+            account_number=payload.account_number,
+            ifsc_code=payload.ifsc_code,
+            branch_name=payload.branch_name,
+            bank_name=payload.bank_name,
+            upi_id=payload.upi_id
+        ).save()
 
-# 
+        return NurseResponse(
+            nurse_id=str(nurse.id),
+            user_id=str(user.id),
+            verification_status=nurse.verification_status
+        )
+
+    except Exception as e:
+        print(f"❌ Signup Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Signup failed: {str(e)}")
 @router.get("/rzp_live_SBbgiyIPp35rea", response_model=NurseSelfSignupRequest)
 def get_my_profile(current_user: User = Depends(get_current_user)):
 

@@ -72,7 +72,7 @@ class NurseProfile(Document):
     account_number = StringField(required=False)
     ifsc_code = StringField(required=False)
     upi_id = StringField(required=False)
-
+    experience_letters = StringField(required=False)
     verification_status = StringField(
         choices=["PENDING", "APPROVED", "REJECTED"],
         default="PENDING"
