@@ -192,7 +192,7 @@
       {% for v in vitals %}
       <div class="border rounded-xl p-3 shadow-sm bg-white">
         <div class="text-sm text-muted mb-3 fw-semibold">
-          {{ v.recorded_at.strftime("%d %b %Y • %H:%M") }}
+          {{ (v.recorded_at + ist_offset).strftime("%d %b %Y • %I:%M %p") if v.recorded_at else "-" }}
         </div>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-3">
           <div class="p-2 rounded bg-gray-50 text-center">

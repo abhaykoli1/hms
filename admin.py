@@ -780,7 +780,8 @@ def nurse_detail_page(
             "salary": salary,
             "duty": active_duty,
             "visits": visits,
-            "consent": consent
+            "consent": consent,
+            "ist_offset": timedelta(hours=5, minutes=30),
         }
     )
 
@@ -996,6 +997,7 @@ def view_patient_details(request: Request, patient_id: str):
             # ✅ NEW
             "equipment_data"       : equipment_data,
             "total_equipment_cost" : total_equipment_cost,
+            "ist_offset"           : timedelta(hours=5, minutes=30),
         }
     )
 
@@ -1322,7 +1324,8 @@ def nurse_detail_page(
             "salary": salary,
             "duty": active_duty,
             "visits": visits,
-            "consent": consent
+            "consent": consent,
+            "ist_offset": timedelta(hours=5, minutes=30),
         }
     )
 

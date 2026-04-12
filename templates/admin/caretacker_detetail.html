@@ -656,8 +656,8 @@
         {% for a in attendance %}
         <tr>
           <td class="ps-3">{{ a.date.strftime("%d %b %Y") }}</td>
-          <td>{{ a.check_in.strftime("%H:%M") if a.check_in else "—" }}</td>
-          <td>{{ a.check_out.strftime("%H:%M") if a.check_out else "—" }}</td>
+          <td>{{ (a.check_in + ist_offset).strftime("%I:%M %p") if a.check_in else "—" }}</td>
+          <td>{{ (a.check_out + ist_offset).strftime("%I:%M %p") if a.check_out else "—" }}</td>
           <td>
             <span class="badge bg-secondary">{{ a.method }}</span>
           </td>
