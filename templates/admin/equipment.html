@@ -32,16 +32,7 @@
 </div>
 
 
-      <div class="col-md-5">
-        <input
-          id="imageFile"
-          type="file"
-          class="form-control"
-          accept="image/*"
-        />
-
-        <!-- <input id="image" class="form-control" placeholder="Image URL" /> -->
-      </div>
+    
 
       <div class="col-md-2">
         <button
@@ -62,7 +53,7 @@
       <table class="table align-middle">
         <thead class="table-light">
           <tr>
-            <th>Image</th>
+           
             <th>Title</th>
             <th>Price</th>
             <th width="200">Action</th>
@@ -90,12 +81,7 @@
         <input id="editTitle" class="form-control mb-3" placeholder="Title" />
           <input id="editPrice" type="number" step="0.01" class="form-control mb-3" placeholder="Price" />
 
-        <input
-          id="editImageFile"
-          type="file"
-          class="form-control"
-          accept="image/*"
-        />
+      
       </div>
 
       <div class="modal-footer">
@@ -130,10 +116,7 @@
     data.forEach((e) => {
       table.innerHTML += `
         <tr>
-          <td>
-            <img src="${e.image}" width="55" height="55"
-              class="rounded shadow-sm object-fit-cover">
-          </td>
+         
 
           <td class="fw-semibold">${e.title}</td>
           <td>₹ ${e.price ?? 0}</td>
@@ -160,7 +143,6 @@
 async function createEquipment() {
   const title = document.getElementById("title").value;
   const price = document.getElementById("price").value;
-  const fileInput = document.getElementById("imageFile");
 
   if (!title) {
     alert("Enter title");
@@ -172,47 +154,21 @@ async function createEquipment() {
     return;
   }
 
-  if (!fileInput.files.length) {
-    alert("Please select image");
-    return;
-  }
-
-  const file = fileInput.files[0];
-
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("folder", "equipment");
-
-  const uploadRes = await fetch("/upload/file", {
-    method: "POST",
-    body: formData,
-  });
-
-  const uploadData = await uploadRes.json();
-
-  if (!uploadData.success) {
-    alert("Image upload failed");
-    return;
-  }
-
   await fetch(`${API_BASE}/create-equipment`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       title,
-      
-      image: uploadData.path,
-      price: parseFloat(document.getElementById("price").value),
+      price: parseFloat(price),
     }),
   });
 
   document.getElementById("title").value = "";
   document.getElementById("price").value = "";
-  fileInput.value = "";
 
   loadEquipment();
 }
-  /////////////////////////////////////////////////
+/////////////////////////////////////////////////
   // DELETE
   /////////////////////////////////////////////////
   async function deleteEquipment(id) {

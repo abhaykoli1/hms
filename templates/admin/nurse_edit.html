@@ -204,17 +204,24 @@
 
     <div class="row">
       <div class="col-md-3 mb-3">
-        <label>Salary structure</label>
-        <select required class="form-select" name="salary_type">
-          <!-- "WEEKLY", -->
-          {% for t in ["DAILY", "WEEKLY" ,"MONTHLY"] %}
-          <option value="{{ t }}"
-            {{ 'selected' if consent and consent.salary_type == t else '' }}>
-            {{ t }}
-          </option>
-          {% endfor %}
-        </select>
-      </div>
+  <label>Salary structure</label>
+
+  <input 
+    type="text" 
+    class="form-control" 
+    name="salary_type"
+    list="salaryOptions"
+    required
+    value="{{ consent.salary_type if consent else '' }}"
+  >
+
+  <datalist id="salaryOptions">
+    <option value="DAILY">
+    <option value="WEEKLY">
+    <option value="MONTHLY">
+  </datalist>
+
+</div>
 
       <div class="col-md-3 mb-3">
         <label>Salary Amount (₹)</label>
@@ -352,15 +359,27 @@
 
     <!-- Visit Type -->
     <div class="col-md-3">
-      <label class="form-label">Visit Type</label>
-      <select id="visit_type" class="form-select">
-        <option value="ROUTINE">ROUTINE</option>
-        <option value="MEDICATION">MEDICATION</option>
-        <option value="EMERGENCY">EMERGENCY</option>
-        <option value="FOLLOW_UP">FOLLOW_UP</option>
-        <option value="OTHER">OTHER</option>
-      </select>
-    </div>
+  <label class="form-label">Visit Type</label>
+
+  <input 
+    type="text" 
+    id="visit_type"
+    name="visit_type"
+    class="form-control"
+    list="visitTypeOptions"
+    placeholder="Enter or select visit type"
+    required
+  >
+
+  <datalist id="visitTypeOptions">
+    <option value="ROUTINE">
+    <option value="MEDICATION">
+    <option value="EMERGENCY">
+    <option value="FOLLOW_UP">
+    <option value="OTHER">
+  </datalist>
+
+</div>
 
     <!-- Duty Location -->
     <div class="col-md-3">

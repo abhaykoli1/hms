@@ -155,7 +155,7 @@ class NurseConsent(Document):
 
     # 🔹 Salary (ADMIN CONTROLLED)
     salary_type = StringField(
-        choices=["DAILY", "WEEKLY", "MONTHLY"],
+
         required=True
     )
     experience_letter = StringField(required=False)
@@ -407,7 +407,7 @@ class NurseVisit(Document):
     address = StringField()
 
     visit_type = StringField(
-        choices=["ROUTINE", "MEDICATION", "EMERGENCY", "FOLLOW_UP", "OTHER"],
+       
     )
 
     notes = StringField()

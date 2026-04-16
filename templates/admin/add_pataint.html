@@ -166,11 +166,12 @@
 
     <thead>
     <tr>
-    <th>Equipment</th>
-    <th>Price / Day</th>
-    <th>Days</th>
-    <th width="80">Action</th>
-    </tr>
+  <th>Equipment</th>
+  <th>Price / Day</th>
+  <th>Days</th>
+  <th>Monthly</th>
+  <th width="80">Action</th>
+</tr>
     </thead>
 
     <tbody id="equipmentRows"></tbody>
@@ -394,6 +395,14 @@ function addRow(){
       >
     </td>
 
+    <td>
+      <input type="number"
+        class="form-control monthly-input"
+        value="0"
+        min="0"
+      >
+    </td>
+
     <td class="text-center">
       <button class="btn btn-danger btn-sm"
         onclick="removeRow(this)">
@@ -407,10 +416,7 @@ function addRow(){
   document
     .getElementById("equipmentRows")
     .insertAdjacentHTML("beforeend", row);
-
 }
-
-
 function removeRow(btn){
   btn.closest("tr").remove();
 }

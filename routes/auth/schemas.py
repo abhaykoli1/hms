@@ -83,20 +83,18 @@ class EquipmentResponse(BaseModel):
 
 class EquipmentCreate(BaseModel):
     title: str
-    image: str
     price: float
 
 
 class EquipmentUpdate(BaseModel):
     title: Optional[str] = None
-    image: Optional[str] = None
+
     price : Optional[float] = None
 
 
 class EquipmentResponse(BaseModel):
     id: str
     title: str
-    image: str
 
 class HospitalCreate(BaseModel):
     name: str

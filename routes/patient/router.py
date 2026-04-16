@@ -1002,7 +1002,7 @@ def get_all_equipment():
             "id": str(e.id),
             "title": e.title,
             "price": e.price,
-            "image": e.image
+          
         }
         for e in equipments
     ]
@@ -1014,7 +1014,7 @@ def create_equipment(payload: EquipmentCreate):
 
     equipment = EquipmentTable(
         title=payload.title,
-        image=payload.image,
+        image="ddadsa",
         price=payload.price
     ).save()
 
