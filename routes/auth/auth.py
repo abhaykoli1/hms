@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 from models import User
 from core.security import create_access_token, verify_password
 from core.dependencies import get_current_user, admin_required
+from core.permissions import first_allowed_admin_path
 
 
 
@@ -230,7 +231,9 @@ def login_password(data: PasswordLoginRequest):
 
     response = JSONResponse({
         "access_token": token,
-        "role": user.role
+        "role": user.role,
+        "admin_role_name": user.admin_role_name,
+        "redirect_url": first_allowed_admin_path(user) if user.role == "ADMIN" else None
     })
 
     response.set_cookie(

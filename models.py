@@ -34,6 +34,8 @@ class User(Document):
     created_at = DateTimeField(default=datetime.utcnow)
     hospital = ReferenceField(HospitalModel, required=False)
     police_verification_file = StringField(required=False)
+    admin_role_name = StringField(required=False)
+    admin_permissions = ListField(StringField(), default=list)
 
 class AboutUs(Document):
     name = StringField()

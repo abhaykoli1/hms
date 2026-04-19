@@ -1,7 +1,7 @@
 import os
 from core.dependencies import get_current_user, get_current_user_from_cookie
 from fastapi import FastAPI , Depends ,Request
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
 
 from fastapi.staticfiles import StaticFiles
 from core.database import init_db
@@ -31,8 +31,11 @@ from routes.payment import router as paymentRouter
 from routes.hospital.routes import router as hospital_router
 from routes.adhar.routes import router as aadharRouter
 from routes.nurse.pdfSalaryRouter import router as pdfSalaryRouter  
-from jose import JWTError
+from jose import JWTError, jwt
 from startup import create_default_admin
+from core.permissions import first_allowed_admin_path, module_for_path, user_can_access_admin_path
+from core.security import SECRET_KEY, ALGORITHM
+from models import User
 app = FastAPI(title="Hospital Management System")
 
 
@@ -73,9 +76,32 @@ async def admin_auth_guard(request: Request, call_next):
         try:
             user = get_current_user_from_cookie(request)
             request.state.user = user
+            if not user_can_access_admin_path(user, path):
+                if request.method == "GET":
+                    return RedirectResponse(first_allowed_admin_path(user))
+                return RedirectResponse("/admin/login", status_code=303)
         except Exception as e:
             print("Admin auth error:", e)
             return RedirectResponse("/admin/login")
+
+    required_module = module_for_path(path)
+    if required_module and not path.startswith("/admin"):
+        token = request.cookies.get("access_token")
+        auth_header = request.headers.get("authorization") or ""
+        if not token and auth_header.lower().startswith("bearer "):
+            token = auth_header.split(" ", 1)[1]
+
+        if token:
+            try:
+                payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+                user = User.objects(id=payload.get("user_id")).first()
+                if user and user.role == "ADMIN" and not user_can_access_admin_path(user, path):
+                    return JSONResponse(
+                        {"detail": "You do not have permission for this module"},
+                        status_code=403
+                    )
+            except JWTError:
+                pass
 
     return await call_next(request)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")

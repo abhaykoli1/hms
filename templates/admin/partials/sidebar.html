@@ -17,6 +17,20 @@
   <!-- Menu -->
   <nav class="space-y-1 mt-28 text-sm font-medium">
     {% if role == "ADMIN" %}
+      {% for item in get_admin_menu(request.state.user) %}
+      <a
+        href="{{ item.path }}"
+        class="flex items-center justify-between px-4 py-3 rounded-xl {% if request.url.path == item.path or request.url.path.startswith(item.path + '/') %} bg-blue-200/50 text-sky-600 shadow-sm {% else %} text-gray-500 hover:bg-blue-200/50 hover:text-sky-600 {% endif %}"
+      >
+        <div class="flex items-center gap-3 text-lg">
+          <i data-lucide="{{ item.icon }}" class="w-5 h-5"></i>
+          <span class="text-[15px]">{{ item.label }}</span>
+        </div>
+        <span class="text-lg">›</span>
+      </a>
+      {% endfor %}
+    {% endif %}
+    {% if false %}
     <!-- Dashboard -->
     <a
       href="/admin/dashboard"

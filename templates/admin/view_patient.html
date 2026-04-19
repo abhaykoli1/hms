@@ -265,6 +265,7 @@
           <th>Dosage</th>
           <th>Timing</th>
           <th>Duration</th>
+          <th>Notes</th>
           <th>Price</th>
         </tr>
       </thead>
@@ -272,9 +273,10 @@
         {% for m in medications %}
         <tr>
           <td>{{ m.medicine_name }}</td>
-          <td>{{ m.dosage }}</td>
-          <td>{{ m.timing | join(", ") }}</td>
-          <td>{{ m.duration_days }}</td>
+          <td>{{ m.dosage or "-" }}</td>
+          <td>{{ (m.timing or []) | join(", ") if m.timing else "-" }}</td>
+          <td>{{ m.duration_days if m.duration_days else "-" }}</td>
+          <td>{{ (m.notes or []) | join(", ") if m.notes else "-" }}</td>
           <td>{% if m.price %}₹ {{ m.price }}{% else %}-{% endif %}</td>
         </tr>
         {% endfor %}

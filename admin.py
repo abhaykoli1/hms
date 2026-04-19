@@ -1,21 +1,23 @@
 import calendar
 from collections import defaultdict
 from datetime import date, timedelta
-from http.client import HTTPException
 import json
 from typing import List, Optional
 from core.dependencies import admin_required, get_current_user , role_required
-from fastapi import APIRouter, Request , Depends
+from core.permissions import ADMIN_MODULES, get_admin_menu
+from fastapi import APIRouter, Request , Depends, HTTPException
 from fastapi.params import Form
 from pydantic import BaseModel
 
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from models import *
+from mongoengine.errors import NotUniqueError
 from mongoengine.queryset.visitor import Q
 router = APIRouter(prefix="/admin", tags=["Admin Pages"])
 
 templates = Jinja2Templates(directory="templates")
+templates.env.globals["get_admin_menu"] = get_admin_menu
 
 
 
@@ -304,9 +306,105 @@ def nurse_dashboard(
 # -------------------------
 @router.get("/users", response_class=HTMLResponse)
 def users(request: Request):
+    admin_users = User.objects(role="ADMIN").order_by("-created_at")
+    menu_modules = [module for module in ADMIN_MODULES if module.show_in_menu]
     return templates.TemplateResponse(
-        "admin/users.html", {"request": request}
+        "admin/users.html",
+        {
+            "request": request,
+            "admin_users": admin_users,
+            "admin_modules": menu_modules,
+        }
     )
+
+
+@router.post("/users/create")
+def create_admin_user(
+    name: str = Form(...),
+    phone: str = Form(...),
+    password: str = Form(...),
+    admin_role_name: str = Form(...),
+    email: str | None = Form(None),
+    permissions: List[str] = Form([]),
+    current_user=Depends(admin_required)
+):
+    if not permissions:
+        raise HTTPException(400, "Select at least one permission")
+
+    allowed_permissions = {module.key for module in ADMIN_MODULES}
+    clean_permissions = [p for p in permissions if p in allowed_permissions]
+    if not clean_permissions:
+        raise HTTPException(400, "Invalid permissions")
+
+    try:
+        User(
+            role="ADMIN",
+            name=name,
+            phone=phone,
+            email=email or None,
+            password_hash=password,
+            admin_role_name=admin_role_name,
+            admin_permissions=clean_permissions,
+            otp_verified=True,
+            is_active=True,
+            created_at=datetime.utcnow(),
+        ).save()
+    except NotUniqueError:
+        raise HTTPException(400, "Phone number already exists")
+
+    return RedirectResponse("/admin/users", status_code=303)
+
+
+@router.post("/users/{user_id}/update")
+def update_admin_user(
+    user_id: str,
+    name: str = Form(...),
+    admin_role_name: str = Form(...),
+    email: str | None = Form(None),
+    password: str | None = Form(None),
+    permissions: List[str] = Form([]),
+    current_user=Depends(admin_required)
+):
+    user = User.objects(id=user_id, role="ADMIN").first()
+    if not user:
+        raise HTTPException(404, "Admin user not found")
+
+    if str(user.id) == str(current_user.id) and not permissions:
+        raise HTTPException(400, "You cannot remove your own access")
+
+    allowed_permissions = {module.key for module in ADMIN_MODULES}
+    clean_permissions = [p for p in permissions if p in allowed_permissions]
+    if not clean_permissions:
+        raise HTTPException(400, "Select at least one permission")
+
+    user.name = name
+    user.email = email or None
+    user.admin_role_name = admin_role_name
+    user.admin_permissions = clean_permissions
+    if password:
+        user.password_hash = password
+        user.token_version += 1
+    user.save()
+
+    return RedirectResponse("/admin/users", status_code=303)
+
+
+@router.post("/users/{user_id}/toggle")
+def toggle_admin_user(
+    user_id: str,
+    current_user=Depends(admin_required)
+):
+    user = User.objects(id=user_id, role="ADMIN").first()
+    if not user:
+        raise HTTPException(404, "Admin user not found")
+    if str(user.id) == str(current_user.id):
+        raise HTTPException(400, "You cannot deactivate yourself")
+
+    user.is_active = not user.is_active
+    user.token_version += 1
+    user.save()
+
+    return RedirectResponse("/admin/users", status_code=303)
 @router.get("/create/nurse", response_class=HTMLResponse)
 def create_nurse(request: Request):
     return templates.TemplateResponse(
@@ -952,7 +1050,7 @@ def view_patient_details(request: Request, patient_id: str):
     duties = NurseDuty.objects(patient=patient).order_by("-duty_start")
     notes = PatientDailyNote.objects(patient=patient).order_by("-created_at")
     vitals = PatientVitals.objects(patient=patient).order_by("-recorded_at")
-    medications = PatientMedication.objects(patient=patient)
+    medications = PatientMedication.objects(patient=patient).order_by("-id")
     relatives = RelativeAccess.objects(patient=patient)
  
     # ── Equipment ──────────────────────────────────────────────

@@ -886,6 +886,13 @@ class DailyNotePayload(BaseModel):
     title: Optional[str] = None
     note: str
 
+class MedicationPayload(BaseModel):
+    medicine_name: str
+    dosage: Optional[str] = None
+    timing: Optional[List[str]] = Field(default_factory=list)
+    duration_days: Optional[int] = None
+    notes: Optional[List[str]] = Field(default_factory=list)
+
 
 @router.post("/patients/{patient_id}/vital-details")
 def create_vitals(
@@ -1070,6 +1077,38 @@ def get_medications(patient_id: str, user=Depends(get_current_user)):
         }
         for m in meds
     ]
+
+@router.post("/patients/{patient_id}/medications")
+def add_medication(
+    patient_id: str,
+    payload: MedicationPayload,
+    user=Depends(get_current_user)
+):
+    if user.role != "NURSE":
+        raise HTTPException(403, "Access denied")
+
+    patient = PatientProfile.objects(id=patient_id).first()
+    if not patient:
+        raise HTTPException(404, "Patient not found")
+
+    medicine_name = payload.medicine_name.strip()
+    if not medicine_name:
+        raise HTTPException(400, "Medicine name is required")
+
+    med = PatientMedication(
+        patient=patient,
+        medicine_name=medicine_name,
+        dosage=(payload.dosage or "").strip(),
+        timing=payload.timing or [],
+        duration_days=payload.duration_days,
+        notes=payload.notes or []
+    )
+    med.save()
+
+    return {
+        "message": "Medication saved successfully",
+        "medication_id": str(med.id)
+    }
 
 
 # @router.get("/nurse/visits")
