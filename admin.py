@@ -81,6 +81,7 @@ def self_registered_nurses(request: Request):
 
     nurses_qs = (
         NurseProfile.objects(created_by="SELF")
+        .filter(nurse_type__ne="CARETAKER")
         .select_related()
        
     )
@@ -88,7 +89,35 @@ def self_registered_nurses(request: Request):
         "admin/nurses_self.html",
         {
             "request": request,
-            "nurses": nurses_qs
+            "nurses": nurses_qs,
+            "page_title": "Self Registered Nurses",
+            "page_description": "Nurses who signed up themselves (Admin approval pending)",
+            "active_tab": "nurses",
+            "empty_message": "No self registered nurses found",
+            "detail_base": "/admin/nurses",
+            "edit_base": "/admin/nurses",
+        }
+    )
+
+
+@router.get("/nurses/self/caretacker", response_class=HTMLResponse)
+def self_registered_caretakers(request: Request):
+    caretakers_qs = (
+        NurseProfile.objects(created_by="SELF", nurse_type="CARETAKER")
+        .select_related()
+    )
+
+    return templates.TemplateResponse(
+        "admin/nurses_self.html",
+        {
+            "request": request,
+            "nurses": caretakers_qs,
+            "page_title": "Self Registered Caretakers",
+            "page_description": "Caretakers who signed up themselves (Admin approval pending)",
+            "active_tab": "caretakers",
+            "empty_message": "No self registered caretakers found",
+            "detail_base": "/admin/caretacker",
+            "edit_base": "/admin/caretacker",
         }
     )
 
@@ -147,8 +176,6 @@ def dashboard(
     # KPI
     # ======================
     total_patients = PatientProfile.objects(
-        service_start__gte=start_date.date(),
-        service_start__lt=end_date.date(),
         **user_filter
     ).count()
 
@@ -262,7 +289,10 @@ def dashboard(
     # RESPONSE
     # ======================
     total_pending_billing = sum(b.grand_total or 0 for b in pending_bills)
-    totalCareTakers = NurseProfile.objects(nurse_type="CARETAKER").count()
+    totalCareTakers = NurseProfile.objects(
+        nurse_type="CARETAKER",
+        **user_filter
+    ).count()
     return templates.TemplateResponse(
         "admin/dashboard.html",
         {

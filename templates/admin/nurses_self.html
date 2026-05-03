@@ -1,14 +1,29 @@
-{% extends "admin/base.html" %} {% block title %}Self Registered Nurses{%
+{% extends "admin/base.html" %} {% block title %}{{ page_title }}{%
 endblock %} {% block content %}
 
 <div class="bg-card border border-gray-50/20 rounded-2xl shadow-soft4">
   <!-- HEADER -->
   <div class="d-flex p-3 justify-content-between align-items-center">
     <div>
-      <h5 class="mb-0 text-md">Self Registered Nurses</h5>
-      <small class="text-muted">
-        Nurses who signed up themselves (Admin approval pending)
-      </small>
+      <h5 class="mb-0 text-md">{{ page_title }}</h5>
+      <small class="text-muted">{{ page_description }}</small>
+    </div>
+  </div>
+
+  <div class="px-3 pb-3">
+    <div class="d-inline-flex gap-2 rounded-xl bg-light p-1">
+      <a
+        href="/admin/nurses/self"
+        class="btn btn-sm {% if active_tab == 'nurses' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+      >
+        Self Nurses
+      </a>
+      <a
+        href="/admin/nurses/self/caretacker"
+        class="btn btn-sm {% if active_tab == 'caretakers' %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+      >
+        Self Caretakers
+      </a>
     </div>
   </div>
 
@@ -119,13 +134,13 @@ endblock %} {% block content %}
         <td class="text-center">
           <button
             class="btn btn-sm hover:bg-yellow-100"
-            onclick="window.location.href='/admin/nurses/{{ nurse.id }}'"
+            onclick="window.location.href='{{ detail_base }}/{{ nurse.id }}'"
           >
            <i data-lucide="eye" class="w-5 h-5 text-yellow-600"></i>
           </button>
 
           <a
-            href="/admin/nurses/{{ nurse.id }}/edit"
+            href="{{ edit_base }}/{{ nurse.id }}/edit"
             class="btn btn-sm hover:bg-yellow-100"
           >
                     <i data-lucide="pencil" class="w-5 h-5 text-yellow-600"></i>
@@ -142,8 +157,8 @@ endblock %} {% block content %}
       </tr>
       {% endfor %} {% else %}
       <tr>
-        <td colspan="6" class="text-center text-muted py-4">
-          No self registered nurses found
+        <td colspan="7" class="text-center text-muted py-4">
+          {{ empty_message }}
         </td>
       </tr>
       {% endif %}
